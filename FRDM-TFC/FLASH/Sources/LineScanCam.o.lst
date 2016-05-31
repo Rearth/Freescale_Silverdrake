@@ -1,0 +1,1471 @@
+   1              		.cpu cortex-m0
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 34, 0
+  11              		.eabi_attribute 18, 4
+  12              		.code	16
+  13              		.file	"LineScanCam.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.comm	motor,4,4
+  18              		.comm	servo,4,4
+  19              		.comm	LEDconfig,4,4
+  20              		.comm	target,4,4
+  21              		.comm	auslmultiplier,4,4
+  22              		.comm	speedMultiplier,4,4
+  23              		.comm	minSpeed,4,4
+  24              		.comm	linetimeout,4,4
+  25              		.comm	ruckwartsZeit,4,4
+  26              		.comm	camData,512,4
+  27              		.global	active
+  28              		.section	.bss.active,"aw",%nobits
+  29              		.align	2
+  32              	active:
+  33 0000 00000000 		.space	4
+  34              		.comm	Sausl,4,4
+  35              		.global	linemissing
+  36              		.section	.bss.linemissing,"aw",%nobits
+  37              		.align	2
+  40              	linemissing:
+  41 0000 00000000 		.space	4
+  42              		.global	checkLineStep
+  43              		.section	.data.checkLineStep,"aw",%progbits
+  44              		.align	2
+  47              	checkLineStep:
+  48 0000 64000000 		.word	100
+  49              		.comm	Motorspeed,4,4
+  50              		.comm	Servoausl,4,4
+  51              		.comm	drivingBack,4,4
+  52              		.global	sAusl
+  53              		.section	.bss.sAusl,"aw",%nobits
+  54              		.align	2
+  57              	sAusl:
+  58 0000 00000000 		.space	4
+  59              		.section	.text.loadCameraData,"ax",%progbits
+  60              		.align	2
+  61              		.global	loadCameraData
+  62              		.code	16
+  63              		.thumb_func
+  65              	loadCameraData:
+  66              	.LFB0:
+  67              		.file 1 "../Sources/LineScanCam.c"
+   1:../Sources/LineScanCam.c **** /*
+   2:../Sources/LineScanCam.c ****  * LSamera.c
+   3:../Sources/LineScanCam.c ****  *
+   4:../Sources/LineScanCam.c ****  *  Created on: May 23, 2016
+   5:../Sources/LineScanCam.c ****  *      Author: Darkp
+   6:../Sources/LineScanCam.c ****  */
+   7:../Sources/LineScanCam.c **** 
+   8:../Sources/LineScanCam.c **** #include "TFC\TFC.h"
+   9:../Sources/LineScanCam.c **** 
+  10:../Sources/LineScanCam.c **** /* Enthält alle wichtigen Methoden diie etwas mit der Linienscancamera zu tun haben.
+  11:../Sources/LineScanCam.c ****  * Die Linienscancamera scannt alle 10ms und speichert die helligkeitswerte in dem "LineScanImage0 
+  12:../Sources/LineScanCam.c **** 
+  13:../Sources/LineScanCam.c **** int camData[128];		//enthält die Daten die zur verarbeitung genutzt werden
+  14:../Sources/LineScanCam.c **** int active = 0; 		//0 = false; !0 = true, gibt den Status der automatischen Steuerung an
+  15:../Sources/LineScanCam.c **** float sAusl = 0;		//momentane auslenkungsvariable
+  16:../Sources/LineScanCam.c **** int linemissing = 0;	//gibt an ob die Linie fehlt oder vorhanden ist (0 = false; 1 = true)
+  17:../Sources/LineScanCam.c **** int checkLineStep = 100;
+  18:../Sources/LineScanCam.c **** 
+  19:../Sources/LineScanCam.c **** void loadCameraData() {	//Methode um die "rohen" Daten in ein zunutzenden Array zu bringen
+  68              		.loc 1 19 0
+  69              		.cfi_startproc
+  70 0000 80B5     		push	{r7, lr}
+  71              	.LCFI0:
+  72              		.cfi_def_cfa_offset 8
+  73              		.cfi_offset 7, -8
+  74              		.cfi_offset 14, -4
+  75 0002 82B0     		sub	sp, sp, #8
+  76              	.LCFI1:
+  77              		.cfi_def_cfa_offset 16
+  78 0004 00AF     		add	r7, sp, #0
+  79              	.LCFI2:
+  80              		.cfi_def_cfa_register 7
+  20:../Sources/LineScanCam.c **** 	
+  21:../Sources/LineScanCam.c **** 	int num = 0;
+  81              		.loc 1 21 0
+  82 0006 0023     		mov	r3, #0
+  83 0008 7B60     		str	r3, [r7, #4]
+  22:../Sources/LineScanCam.c **** 	for (num = 0; num < 128; num++) {				//nimmt jeden Wert und setzt ihn in camData
+  84              		.loc 1 22 0
+  85 000a 0023     		mov	r3, #0
+  86 000c 7B60     		str	r3, [r7, #4]
+  87 000e 0EE0     		b	.L2
+  88              	.L3:
+  23:../Sources/LineScanCam.c **** 		camData[num] = (int) LineScanImage0[num];
+  89              		.loc 1 23 0
+  90 0010 1C4B     		ldr	r3, .L8
+  91 0012 1A68     		ldr	r2, [r3]
+  92 0014 7B68     		ldr	r3, [r7, #4]
+  93 0016 5B00     		lsl	r3, r3, #1
+  94 0018 D318     		add	r3, r2, r3
+  95 001a 1B88     		ldrh	r3, [r3]
+  96 001c 9BB2     		uxth	r3, r3
+  97 001e 191C     		mov	r1, r3
+  98 0020 194B     		ldr	r3, .L8+4
+  99 0022 7A68     		ldr	r2, [r7, #4]
+ 100 0024 9200     		lsl	r2, r2, #2
+ 101 0026 D150     		str	r1, [r2, r3]
+  22:../Sources/LineScanCam.c **** 	for (num = 0; num < 128; num++) {				//nimmt jeden Wert und setzt ihn in camData
+ 102              		.loc 1 22 0
+ 103 0028 7B68     		ldr	r3, [r7, #4]
+ 104 002a 0133     		add	r3, r3, #1
+ 105 002c 7B60     		str	r3, [r7, #4]
+ 106              	.L2:
+  22:../Sources/LineScanCam.c **** 	for (num = 0; num < 128; num++) {				//nimmt jeden Wert und setzt ihn in camData
+ 107              		.loc 1 22 0 is_stmt 0
+ 108 002e 7B68     		ldr	r3, [r7, #4]
+ 109 0030 7F2B     		cmp	r3, #127
+ 110 0032 EDDD     		ble	.L3
+  24:../Sources/LineScanCam.c **** 	}
+  25:../Sources/LineScanCam.c **** 	for (num = 0; num < 5; num++) {					//erhöht die Randwerte, da diese oftmals seltsame Werte enthal
+ 111              		.loc 1 25 0 is_stmt 1
+ 112 0034 0023     		mov	r3, #0
+ 113 0036 7B60     		str	r3, [r7, #4]
+ 114 0038 0AE0     		b	.L4
+ 115              	.L5:
+  26:../Sources/LineScanCam.c **** 		camData[num] = camData[14] + 100;
+ 116              		.loc 1 26 0
+ 117 003a 134B     		ldr	r3, .L8+4
+ 118 003c 9B6B     		ldr	r3, [r3, #56]
+ 119 003e 191C     		mov	r1, r3
+ 120 0040 6431     		add	r1, r1, #100
+ 121 0042 114B     		ldr	r3, .L8+4
+ 122 0044 7A68     		ldr	r2, [r7, #4]
+ 123 0046 9200     		lsl	r2, r2, #2
+ 124 0048 D150     		str	r1, [r2, r3]
+  25:../Sources/LineScanCam.c **** 	for (num = 0; num < 5; num++) {					//erhöht die Randwerte, da diese oftmals seltsame Werte enthal
+ 125              		.loc 1 25 0
+ 126 004a 7B68     		ldr	r3, [r7, #4]
+ 127 004c 0133     		add	r3, r3, #1
+ 128 004e 7B60     		str	r3, [r7, #4]
+ 129              	.L4:
+  25:../Sources/LineScanCam.c **** 	for (num = 0; num < 5; num++) {					//erhöht die Randwerte, da diese oftmals seltsame Werte enthal
+ 130              		.loc 1 25 0 is_stmt 0
+ 131 0050 7B68     		ldr	r3, [r7, #4]
+ 132 0052 042B     		cmp	r3, #4
+ 133 0054 F1DD     		ble	.L5
+  27:../Sources/LineScanCam.c **** 	}
+  28:../Sources/LineScanCam.c **** 	for (num = 123; num < 128; num++) {
+ 134              		.loc 1 28 0 is_stmt 1
+ 135 0056 7B23     		mov	r3, #123
+ 136 0058 7B60     		str	r3, [r7, #4]
+ 137 005a 0CE0     		b	.L6
+ 138              	.L7:
+  29:../Sources/LineScanCam.c **** 		camData[num] = camData[115] + 100;
+ 139              		.loc 1 29 0
+ 140 005c 0A4A     		ldr	r2, .L8+4
+ 141 005e E623     		mov	r3, #230
+ 142 0060 5B00     		lsl	r3, r3, #1
+ 143 0062 D358     		ldr	r3, [r2, r3]
+ 144 0064 191C     		mov	r1, r3
+ 145 0066 6431     		add	r1, r1, #100
+ 146 0068 074B     		ldr	r3, .L8+4
+ 147 006a 7A68     		ldr	r2, [r7, #4]
+ 148 006c 9200     		lsl	r2, r2, #2
+ 149 006e D150     		str	r1, [r2, r3]
+  28:../Sources/LineScanCam.c **** 	for (num = 123; num < 128; num++) {
+ 150              		.loc 1 28 0
+ 151 0070 7B68     		ldr	r3, [r7, #4]
+ 152 0072 0133     		add	r3, r3, #1
+ 153 0074 7B60     		str	r3, [r7, #4]
+ 154              	.L6:
+  28:../Sources/LineScanCam.c **** 	for (num = 123; num < 128; num++) {
+ 155              		.loc 1 28 0 is_stmt 0
+ 156 0076 7B68     		ldr	r3, [r7, #4]
+ 157 0078 7F2B     		cmp	r3, #127
+ 158 007a EFDD     		ble	.L7
+  30:../Sources/LineScanCam.c **** 	}
+  31:../Sources/LineScanCam.c **** 	
+  32:../Sources/LineScanCam.c **** }
+ 159              		.loc 1 32 0 is_stmt 1
+ 160 007c BD46     		mov	sp, r7
+ 161 007e 02B0     		add	sp, sp, #8
+ 162              		@ sp needed for prologue
+ 163 0080 80BD     		pop	{r7, pc}
+ 164              	.L9:
+ 165 0082 C046     		.align	2
+ 166              	.L8:
+ 167 0084 00000000 		.word	LineScanImage0
+ 168 0088 00000000 		.word	camData
+ 169              		.cfi_endproc
+ 170              	.LFE0:
+ 172              		.section	.text.calcquarterLED,"ax",%progbits
+ 173              		.align	2
+ 174              		.global	calcquarterLED
+ 175              		.code	16
+ 176              		.thumb_func
+ 178              	calcquarterLED:
+ 179              	.LFB1:
+  33:../Sources/LineScanCam.c **** 
+  34:../Sources/LineScanCam.c **** void calcquarterLED(int Data[128]) {			//Methode zur berechnung in welche Vierter sich die Linie be
+ 180              		.loc 1 34 0
+ 181              		.cfi_startproc
+ 182 0000 80B5     		push	{r7, lr}
+ 183              	.LCFI3:
+ 184              		.cfi_def_cfa_offset 8
+ 185              		.cfi_offset 7, -8
+ 186              		.cfi_offset 14, -4
+ 187 0002 8EB0     		sub	sp, sp, #56
+ 188              	.LCFI4:
+ 189              		.cfi_def_cfa_offset 64
+ 190 0004 00AF     		add	r7, sp, #0
+ 191              	.LCFI5:
+ 192              		.cfi_def_cfa_register 7
+ 193 0006 7860     		str	r0, [r7, #4]
+  35:../Sources/LineScanCam.c **** 												//um dies mit den 4 LEDs anzuzeigen
+  36:../Sources/LineScanCam.c **** 	int num;
+  37:../Sources/LineScanCam.c **** 	int val[5];									//locale variablen, die für die berechnungen benötigt werden (val = value)
+  38:../Sources/LineScanCam.c **** 	val[0] = 99999;
+ 194              		.loc 1 38 0
+ 195 0008 3B1C     		mov	r3, r7
+ 196 000a 1C33     		add	r3, r3, #28
+ 197 000c 504A     		ldr	r2, .L25
+ 198 000e 1A60     		str	r2, [r3]
+  39:../Sources/LineScanCam.c **** 	int calcnum[5];								//calcnum = calculierte nummer
+  40:../Sources/LineScanCam.c **** 	for (num = 1; num < 5; num++) {val[num] = 0;}		//setzt alle werte des Arrays calcnum auf 0
+ 199              		.loc 1 40 0
+ 200 0010 0123     		mov	r3, #1
+ 201 0012 7B63     		str	r3, [r7, #52]
+ 202 0014 08E0     		b	.L11
+ 203              	.L12:
+ 204              		.loc 1 40 0 is_stmt 0
+ 205 0016 3B1C     		mov	r3, r7
+ 206 0018 1C33     		add	r3, r3, #28
+ 207 001a 7A6B     		ldr	r2, [r7, #52]
+ 208 001c 9200     		lsl	r2, r2, #2
+ 209 001e 0021     		mov	r1, #0
+ 210 0020 D150     		str	r1, [r2, r3]
+ 211 0022 7B6B     		ldr	r3, [r7, #52]
+ 212 0024 0133     		add	r3, r3, #1
+ 213 0026 7B63     		str	r3, [r7, #52]
+ 214              	.L11:
+ 215              		.loc 1 40 0
+ 216 0028 7B6B     		ldr	r3, [r7, #52]
+ 217 002a 042B     		cmp	r3, #4
+ 218 002c F3DD     		ble	.L12
+  41:../Sources/LineScanCam.c **** 	
+  42:../Sources/LineScanCam.c **** 	for (num = 0; num < 32; num++) {			//hier werden die durchschnittswerte für je 32 werte berechnet,
+ 219              		.loc 1 42 0 is_stmt 1
+ 220 002e 0023     		mov	r3, #0
+ 221 0030 7B63     		str	r3, [r7, #52]
+ 222 0032 0EE0     		b	.L13
+ 223              	.L14:
+  43:../Sources/LineScanCam.c **** 		val[1] = val[1] + Data[num];
+ 224              		.loc 1 43 0
+ 225 0034 3B1C     		mov	r3, r7
+ 226 0036 1C33     		add	r3, r3, #28
+ 227 0038 5A68     		ldr	r2, [r3, #4]
+ 228 003a 7B6B     		ldr	r3, [r7, #52]
+ 229 003c 9B00     		lsl	r3, r3, #2
+ 230 003e 7968     		ldr	r1, [r7, #4]
+ 231 0040 CB18     		add	r3, r1, r3
+ 232 0042 1B68     		ldr	r3, [r3]
+ 233 0044 D218     		add	r2, r2, r3
+ 234 0046 3B1C     		mov	r3, r7
+ 235 0048 1C33     		add	r3, r3, #28
+ 236 004a 5A60     		str	r2, [r3, #4]
+  42:../Sources/LineScanCam.c **** 	for (num = 0; num < 32; num++) {			//hier werden die durchschnittswerte für je 32 werte berechnet,
+ 237              		.loc 1 42 0
+ 238 004c 7B6B     		ldr	r3, [r7, #52]
+ 239 004e 0133     		add	r3, r3, #1
+ 240 0050 7B63     		str	r3, [r7, #52]
+ 241              	.L13:
+  42:../Sources/LineScanCam.c **** 	for (num = 0; num < 32; num++) {			//hier werden die durchschnittswerte für je 32 werte berechnet,
+ 242              		.loc 1 42 0 is_stmt 0
+ 243 0052 7B6B     		ldr	r3, [r7, #52]
+ 244 0054 1F2B     		cmp	r3, #31
+ 245 0056 EDDD     		ble	.L14
+  44:../Sources/LineScanCam.c **** 	}
+  45:../Sources/LineScanCam.c **** 	calcnum[1] = val[1] / 32 ;
+ 246              		.loc 1 45 0 is_stmt 1
+ 247 0058 3B1C     		mov	r3, r7
+ 248 005a 1C33     		add	r3, r3, #28
+ 249 005c 5B68     		ldr	r3, [r3, #4]
+ 250 005e 002B     		cmp	r3, #0
+ 251 0060 00DA     		bge	.L15
+ 252 0062 1F33     		add	r3, r3, #31
+ 253              	.L15:
+ 254 0064 5B11     		asr	r3, r3, #5
+ 255 0066 1A1C     		mov	r2, r3
+ 256 0068 3B1C     		mov	r3, r7
+ 257 006a 0833     		add	r3, r3, #8
+ 258 006c 5A60     		str	r2, [r3, #4]
+  46:../Sources/LineScanCam.c **** 	
+  47:../Sources/LineScanCam.c **** 	for (num = 32; num < 64; num++) {
+ 259              		.loc 1 47 0
+ 260 006e 2023     		mov	r3, #32
+ 261 0070 7B63     		str	r3, [r7, #52]
+ 262 0072 0EE0     		b	.L16
+ 263              	.L17:
+  48:../Sources/LineScanCam.c **** 		val[2] = val[2] + Data[num];
+ 264              		.loc 1 48 0
+ 265 0074 3B1C     		mov	r3, r7
+ 266 0076 1C33     		add	r3, r3, #28
+ 267 0078 9A68     		ldr	r2, [r3, #8]
+ 268 007a 7B6B     		ldr	r3, [r7, #52]
+ 269 007c 9B00     		lsl	r3, r3, #2
+ 270 007e 7968     		ldr	r1, [r7, #4]
+ 271 0080 CB18     		add	r3, r1, r3
+ 272 0082 1B68     		ldr	r3, [r3]
+ 273 0084 D218     		add	r2, r2, r3
+ 274 0086 3B1C     		mov	r3, r7
+ 275 0088 1C33     		add	r3, r3, #28
+ 276 008a 9A60     		str	r2, [r3, #8]
+  47:../Sources/LineScanCam.c **** 	for (num = 32; num < 64; num++) {
+ 277              		.loc 1 47 0
+ 278 008c 7B6B     		ldr	r3, [r7, #52]
+ 279 008e 0133     		add	r3, r3, #1
+ 280 0090 7B63     		str	r3, [r7, #52]
+ 281              	.L16:
+  47:../Sources/LineScanCam.c **** 	for (num = 32; num < 64; num++) {
+ 282              		.loc 1 47 0 is_stmt 0
+ 283 0092 7B6B     		ldr	r3, [r7, #52]
+ 284 0094 3F2B     		cmp	r3, #63
+ 285 0096 EDDD     		ble	.L17
+  49:../Sources/LineScanCam.c **** 	}
+  50:../Sources/LineScanCam.c **** 	calcnum[2] = val[2] / 32;
+ 286              		.loc 1 50 0 is_stmt 1
+ 287 0098 3B1C     		mov	r3, r7
+ 288 009a 1C33     		add	r3, r3, #28
+ 289 009c 9B68     		ldr	r3, [r3, #8]
+ 290 009e 002B     		cmp	r3, #0
+ 291 00a0 00DA     		bge	.L18
+ 292 00a2 1F33     		add	r3, r3, #31
+ 293              	.L18:
+ 294 00a4 5B11     		asr	r3, r3, #5
+ 295 00a6 1A1C     		mov	r2, r3
+ 296 00a8 3B1C     		mov	r3, r7
+ 297 00aa 0833     		add	r3, r3, #8
+ 298 00ac 9A60     		str	r2, [r3, #8]
+  51:../Sources/LineScanCam.c **** 	
+  52:../Sources/LineScanCam.c **** 	for (num = 64; num < 96; num++) {
+ 299              		.loc 1 52 0
+ 300 00ae 4023     		mov	r3, #64
+ 301 00b0 7B63     		str	r3, [r7, #52]
+ 302 00b2 0EE0     		b	.L19
+ 303              	.L20:
+  53:../Sources/LineScanCam.c **** 		val[3] = val[3] + Data[num];
+ 304              		.loc 1 53 0
+ 305 00b4 3B1C     		mov	r3, r7
+ 306 00b6 1C33     		add	r3, r3, #28
+ 307 00b8 DA68     		ldr	r2, [r3, #12]
+ 308 00ba 7B6B     		ldr	r3, [r7, #52]
+ 309 00bc 9B00     		lsl	r3, r3, #2
+ 310 00be 7968     		ldr	r1, [r7, #4]
+ 311 00c0 CB18     		add	r3, r1, r3
+ 312 00c2 1B68     		ldr	r3, [r3]
+ 313 00c4 D218     		add	r2, r2, r3
+ 314 00c6 3B1C     		mov	r3, r7
+ 315 00c8 1C33     		add	r3, r3, #28
+ 316 00ca DA60     		str	r2, [r3, #12]
+  52:../Sources/LineScanCam.c **** 	for (num = 64; num < 96; num++) {
+ 317              		.loc 1 52 0
+ 318 00cc 7B6B     		ldr	r3, [r7, #52]
+ 319 00ce 0133     		add	r3, r3, #1
+ 320 00d0 7B63     		str	r3, [r7, #52]
+ 321              	.L19:
+  52:../Sources/LineScanCam.c **** 	for (num = 64; num < 96; num++) {
+ 322              		.loc 1 52 0 is_stmt 0
+ 323 00d2 7B6B     		ldr	r3, [r7, #52]
+ 324 00d4 5F2B     		cmp	r3, #95
+ 325 00d6 EDDD     		ble	.L20
+  54:../Sources/LineScanCam.c **** 	}
+  55:../Sources/LineScanCam.c **** 	calcnum[3] = val[3] / 32;
+ 326              		.loc 1 55 0 is_stmt 1
+ 327 00d8 3B1C     		mov	r3, r7
+ 328 00da 1C33     		add	r3, r3, #28
+ 329 00dc DB68     		ldr	r3, [r3, #12]
+ 330 00de 002B     		cmp	r3, #0
+ 331 00e0 00DA     		bge	.L21
+ 332 00e2 1F33     		add	r3, r3, #31
+ 333              	.L21:
+ 334 00e4 5B11     		asr	r3, r3, #5
+ 335 00e6 1A1C     		mov	r2, r3
+ 336 00e8 3B1C     		mov	r3, r7
+ 337 00ea 0833     		add	r3, r3, #8
+ 338 00ec DA60     		str	r2, [r3, #12]
+  56:../Sources/LineScanCam.c **** 	
+  57:../Sources/LineScanCam.c **** 	for (num = 96; num < 128; num++) {
+ 339              		.loc 1 57 0
+ 340 00ee 6023     		mov	r3, #96
+ 341 00f0 7B63     		str	r3, [r7, #52]
+ 342 00f2 0EE0     		b	.L22
+ 343              	.L23:
+  58:../Sources/LineScanCam.c **** 		val[4] = val[4] + Data[num];
+ 344              		.loc 1 58 0
+ 345 00f4 3B1C     		mov	r3, r7
+ 346 00f6 1C33     		add	r3, r3, #28
+ 347 00f8 1A69     		ldr	r2, [r3, #16]
+ 348 00fa 7B6B     		ldr	r3, [r7, #52]
+ 349 00fc 9B00     		lsl	r3, r3, #2
+ 350 00fe 7968     		ldr	r1, [r7, #4]
+ 351 0100 CB18     		add	r3, r1, r3
+ 352 0102 1B68     		ldr	r3, [r3]
+ 353 0104 D218     		add	r2, r2, r3
+ 354 0106 3B1C     		mov	r3, r7
+ 355 0108 1C33     		add	r3, r3, #28
+ 356 010a 1A61     		str	r2, [r3, #16]
+  57:../Sources/LineScanCam.c **** 	for (num = 96; num < 128; num++) {
+ 357              		.loc 1 57 0
+ 358 010c 7B6B     		ldr	r3, [r7, #52]
+ 359 010e 0133     		add	r3, r3, #1
+ 360 0110 7B63     		str	r3, [r7, #52]
+ 361              	.L22:
+  57:../Sources/LineScanCam.c **** 	for (num = 96; num < 128; num++) {
+ 362              		.loc 1 57 0 is_stmt 0
+ 363 0112 7B6B     		ldr	r3, [r7, #52]
+ 364 0114 7F2B     		cmp	r3, #127
+ 365 0116 EDDD     		ble	.L23
+  59:../Sources/LineScanCam.c **** 	}
+  60:../Sources/LineScanCam.c **** 	calcnum[4] = val[4] / 32;
+ 366              		.loc 1 60 0 is_stmt 1
+ 367 0118 3B1C     		mov	r3, r7
+ 368 011a 1C33     		add	r3, r3, #28
+ 369 011c 1B69     		ldr	r3, [r3, #16]
+ 370 011e 002B     		cmp	r3, #0
+ 371 0120 00DA     		bge	.L24
+ 372 0122 1F33     		add	r3, r3, #31
+ 373              	.L24:
+ 374 0124 5B11     		asr	r3, r3, #5
+ 375 0126 1A1C     		mov	r2, r3
+ 376 0128 3B1C     		mov	r3, r7
+ 377 012a 0833     		add	r3, r3, #8
+ 378 012c 1A61     		str	r2, [r3, #16]
+  61:../Sources/LineScanCam.c **** 	
+  62:../Sources/LineScanCam.c **** 	int lowestIndex = getLowestIndex(calcnum, 0, 5);		//findet heraus in welchem der vier Werte (viert
+ 379              		.loc 1 62 0
+ 380 012e 3B1C     		mov	r3, r7
+ 381 0130 0833     		add	r3, r3, #8
+ 382 0132 181C     		mov	r0, r3
+ 383 0134 0021     		mov	r1, #0
+ 384 0136 0522     		mov	r2, #5
+ 385 0138 FFF7FEFF 		bl	getLowestIndex
+ 386 013c 031C     		mov	r3, r0
+ 387 013e 3B63     		str	r3, [r7, #48]
+  63:../Sources/LineScanCam.c **** 															//der Wert am niedrigsten ist
+  64:../Sources/LineScanCam.c **** 	showDirection(lowestIndex);								//zeigt das ergebnis mithilfe der LEDs an
+ 388              		.loc 1 64 0
+ 389 0140 3B6B     		ldr	r3, [r7, #48]
+ 390 0142 181C     		mov	r0, r3
+ 391 0144 FFF7FEFF 		bl	showDirection
+  65:../Sources/LineScanCam.c **** 	
+  66:../Sources/LineScanCam.c **** 	
+  67:../Sources/LineScanCam.c **** }
+ 392              		.loc 1 67 0
+ 393 0148 BD46     		mov	sp, r7
+ 394 014a 0EB0     		add	sp, sp, #56
+ 395              		@ sp needed for prologue
+ 396 014c 80BD     		pop	{r7, pc}
+ 397              	.L26:
+ 398 014e C046     		.align	2
+ 399              	.L25:
+ 400 0150 9F860100 		.word	99999
+ 401              		.cfi_endproc
+ 402              	.LFE1:
+ 404              		.section	.text.getLowestIndex,"ax",%progbits
+ 405              		.align	2
+ 406              		.global	getLowestIndex
+ 407              		.code	16
+ 408              		.thumb_func
+ 410              	getLowestIndex:
+ 411              	.LFB2:
+  68:../Sources/LineScanCam.c **** 
+  69:../Sources/LineScanCam.c **** int getLowestIndex (int array[], int wantValue, int length) {		//methode zum herausfinden der Posit
+ 412              		.loc 1 69 0
+ 413              		.cfi_startproc
+ 414 0000 80B5     		push	{r7, lr}
+ 415              	.LCFI6:
+ 416              		.cfi_def_cfa_offset 8
+ 417              		.cfi_offset 7, -8
+ 418              		.cfi_offset 14, -4
+ 419 0002 88B0     		sub	sp, sp, #32
+ 420              	.LCFI7:
+ 421              		.cfi_def_cfa_offset 40
+ 422 0004 00AF     		add	r7, sp, #0
+ 423              	.LCFI8:
+ 424              		.cfi_def_cfa_register 7
+ 425 0006 F860     		str	r0, [r7, #12]
+ 426 0008 B960     		str	r1, [r7, #8]
+ 427 000a 7A60     		str	r2, [r7, #4]
+  70:../Sources/LineScanCam.c **** 	
+  71:../Sources/LineScanCam.c **** 	int lnum = array[1];									//lowest number
+ 428              		.loc 1 71 0
+ 429 000c FB68     		ldr	r3, [r7, #12]
+ 430 000e 5B68     		ldr	r3, [r3, #4]
+ 431 0010 FB61     		str	r3, [r7, #28]
+  72:../Sources/LineScanCam.c **** 	int lnumIndex = 1;										//position/index im array der niedrigsten nummer
+ 432              		.loc 1 72 0
+ 433 0012 0123     		mov	r3, #1
+ 434 0014 BB61     		str	r3, [r7, #24]
+  73:../Sources/LineScanCam.c **** 	int Index = 1;											//Index auf den momentan geschaut wird
+ 435              		.loc 1 73 0
+ 436 0016 0123     		mov	r3, #1
+ 437 0018 7B61     		str	r3, [r7, #20]
+  74:../Sources/LineScanCam.c **** 	
+  75:../Sources/LineScanCam.c **** 	
+  76:../Sources/LineScanCam.c **** 	for (Index = 0; Index < length; Index++) {				//nimmt jeden index im array, falls der Wert von die
+ 438              		.loc 1 76 0
+ 439 001a 0023     		mov	r3, #0
+ 440 001c 7B61     		str	r3, [r7, #20]
+ 441 001e 1DE0     		b	.L28
+ 442              	.L32:
+  77:../Sources/LineScanCam.c **** 		if (array[Index] < lnum && array[Index != 0]) {		//unter lnum ist wird lnum bzw. nlumIndex auf de
+ 443              		.loc 1 77 0
+ 444 0020 7B69     		ldr	r3, [r7, #20]
+ 445 0022 9B00     		lsl	r3, r3, #2
+ 446 0024 FA68     		ldr	r2, [r7, #12]
+ 447 0026 D318     		add	r3, r2, r3
+ 448 0028 1A68     		ldr	r2, [r3]
+ 449 002a FB69     		ldr	r3, [r7, #28]
+ 450 002c 9A42     		cmp	r2, r3
+ 451 002e 12DA     		bge	.L29
+ 452              		.loc 1 77 0 is_stmt 0
+ 453 0030 7B69     		ldr	r3, [r7, #20]
+ 454 0032 002B     		cmp	r3, #0
+ 455 0034 01D0     		beq	.L30
+ 456 0036 0423     		mov	r3, #4
+ 457 0038 00E0     		b	.L31
+ 458              	.L30:
+ 459              		.loc 1 77 0
+ 460 003a 0023     		mov	r3, #0
+ 461              	.L31:
+ 462              		.loc 1 77 0
+ 463 003c FA68     		ldr	r2, [r7, #12]
+ 464 003e D318     		add	r3, r2, r3
+ 465 0040 1B68     		ldr	r3, [r3]
+ 466 0042 002B     		cmp	r3, #0
+ 467 0044 07D0     		beq	.L29
+  78:../Sources/LineScanCam.c **** 			lnum = array[Index];							//von diesem gesetzt
+ 468              		.loc 1 78 0 is_stmt 1
+ 469 0046 7B69     		ldr	r3, [r7, #20]
+ 470 0048 9B00     		lsl	r3, r3, #2
+ 471 004a FA68     		ldr	r2, [r7, #12]
+ 472 004c D318     		add	r3, r2, r3
+ 473 004e 1B68     		ldr	r3, [r3]
+ 474 0050 FB61     		str	r3, [r7, #28]
+  79:../Sources/LineScanCam.c **** 			lnumIndex = Index;
+ 475              		.loc 1 79 0
+ 476 0052 7B69     		ldr	r3, [r7, #20]
+ 477 0054 BB61     		str	r3, [r7, #24]
+ 478              	.L29:
+  76:../Sources/LineScanCam.c **** 	for (Index = 0; Index < length; Index++) {				//nimmt jeden index im array, falls der Wert von die
+ 479              		.loc 1 76 0
+ 480 0056 7B69     		ldr	r3, [r7, #20]
+ 481 0058 0133     		add	r3, r3, #1
+ 482 005a 7B61     		str	r3, [r7, #20]
+ 483              	.L28:
+  76:../Sources/LineScanCam.c **** 	for (Index = 0; Index < length; Index++) {				//nimmt jeden index im array, falls der Wert von die
+ 484              		.loc 1 76 0 is_stmt 0
+ 485 005c 7A69     		ldr	r2, [r7, #20]
+ 486 005e 7B68     		ldr	r3, [r7, #4]
+ 487 0060 9A42     		cmp	r2, r3
+ 488 0062 DDDB     		blt	.L32
+  80:../Sources/LineScanCam.c **** 		}
+  81:../Sources/LineScanCam.c **** 	}
+  82:../Sources/LineScanCam.c **** 	if (wantValue == 1) {									//falls der Wert der niedrigsten zahl zahl gewollt ist
+ 489              		.loc 1 82 0 is_stmt 1
+ 490 0064 BB68     		ldr	r3, [r7, #8]
+ 491 0066 012B     		cmp	r3, #1
+ 492 0068 01D1     		bne	.L33
+  83:../Sources/LineScanCam.c **** 		return lnum;
+ 493              		.loc 1 83 0
+ 494 006a FB69     		ldr	r3, [r7, #28]
+ 495 006c 00E0     		b	.L34
+ 496              	.L33:
+  84:../Sources/LineScanCam.c **** 	} else {												//falls die arraypositin der niedrigsten Zahl gewollt ist
+  85:../Sources/LineScanCam.c **** 		return lnumIndex;
+ 497              		.loc 1 85 0
+ 498 006e BB69     		ldr	r3, [r7, #24]
+ 499              	.L34:
+  86:../Sources/LineScanCam.c **** 	}
+  87:../Sources/LineScanCam.c **** }
+ 500              		.loc 1 87 0
+ 501 0070 181C     		mov	r0, r3
+ 502 0072 BD46     		mov	sp, r7
+ 503 0074 08B0     		add	sp, sp, #32
+ 504              		@ sp needed for prologue
+ 505 0076 80BD     		pop	{r7, pc}
+ 506              		.cfi_endproc
+ 507              	.LFE2:
+ 509              		.section	.rodata
+ 510              		.align	2
+ 511              	.LC4:
+ 512 0000 56616C75 		.ascii	"Value: %d\000"
+ 512      653A2025 
+ 512      6400
+ 513 000a 0000     		.align	2
+ 514              	.LC6:
+ 515 000c 20492049 		.ascii	" I Index: %d\000"
+ 515      6E646578 
+ 515      3A202564 
+ 515      00
+ 516              		.section	.text.getBlackPos,"ax",%progbits
+ 517              		.align	2
+ 518              		.global	getBlackPos
+ 519              		.code	16
+ 520              		.thumb_func
+ 522              	getBlackPos:
+ 523              	.LFB3:
+  88:../Sources/LineScanCam.c **** 			
+  89:../Sources/LineScanCam.c **** 
+  90:../Sources/LineScanCam.c **** int getBlackPos() {											//Methode zur berechnung der Stelle an der es am dunkelsten ist, mitt
+ 524              		.loc 1 90 0
+ 525              		.cfi_startproc
+ 526 0000 80B5     		push	{r7, lr}
+ 527              	.LCFI9:
+ 528              		.cfi_def_cfa_offset 8
+ 529              		.cfi_offset 7, -8
+ 530              		.cfi_offset 14, -4
+ 531 0002 84B0     		sub	sp, sp, #16
+ 532              	.LCFI10:
+ 533              		.cfi_def_cfa_offset 24
+ 534 0004 00AF     		add	r7, sp, #0
+ 535              	.LCFI11:
+ 536              		.cfi_def_cfa_register 7
+  91:../Sources/LineScanCam.c **** 		
+  92:../Sources/LineScanCam.c **** 	int rawPos = getLowestIndex(camData, 0, 128);			//findet die position des tiefsten Werts im Array 
+ 537              		.loc 1 92 0
+ 538 0006 164B     		ldr	r3, .L37
+ 539 0008 181C     		mov	r0, r3
+ 540 000a 0021     		mov	r1, #0
+ 541 000c 8022     		mov	r2, #128
+ 542 000e FFF7FEFF 		bl	getLowestIndex
+ 543 0012 031C     		mov	r3, r0
+ 544 0014 FB60     		str	r3, [r7, #12]
+  93:../Sources/LineScanCam.c **** 	calcMotorSpeed(rawPos);									//berechnet die Motorengeschwindkeit anhand dieses Werts
+ 545              		.loc 1 93 0
+ 546 0016 FB68     		ldr	r3, [r7, #12]
+ 547 0018 181C     		mov	r0, r3
+ 548 001a FFF7FEFF 		bl	calcMotorSpeed
+  94:../Sources/LineScanCam.c **** 	int val = getLowestIndex(camData, 1, 128);				//berechnet den tiefsten Wert im array, nur zu infoz
+ 549              		.loc 1 94 0
+ 550 001e 104B     		ldr	r3, .L37
+ 551 0020 181C     		mov	r0, r3
+ 552 0022 0121     		mov	r1, #1
+ 553 0024 8022     		mov	r2, #128
+ 554 0026 FFF7FEFF 		bl	getLowestIndex
+ 555 002a 031C     		mov	r3, r0
+ 556 002c BB60     		str	r3, [r7, #8]
+  95:../Sources/LineScanCam.c **** 	int value = (rawPos - 64);								//setzt die Mitte bei null
+ 557              		.loc 1 95 0
+ 558 002e FB68     		ldr	r3, [r7, #12]
+ 559 0030 403B     		sub	r3, r3, #64
+ 560 0032 7B60     		str	r3, [r7, #4]
+  96:../Sources/LineScanCam.c **** 	TERMINAL_PRINTF("Value: %d", val);
+ 561              		.loc 1 96 0
+ 562 0034 0B49     		ldr	r1, .L37+4
+ 563 0036 0C4A     		ldr	r2, .L37+8
+ 564 0038 BB68     		ldr	r3, [r7, #8]
+ 565 003a 081C     		mov	r0, r1
+ 566 003c 111C     		mov	r1, r2
+ 567 003e 1A1C     		mov	r2, r3
+ 568 0040 FFF7FEFF 		bl	Qprintf
+  97:../Sources/LineScanCam.c **** 	TERMINAL_PRINTF(" I Index: %d", rawPos);				//gibt die Werte im terminal an
+ 569              		.loc 1 97 0
+ 570 0044 0749     		ldr	r1, .L37+4
+ 571 0046 094A     		ldr	r2, .L37+12
+ 572 0048 FB68     		ldr	r3, [r7, #12]
+ 573 004a 081C     		mov	r0, r1
+ 574 004c 111C     		mov	r1, r2
+ 575 004e 1A1C     		mov	r2, r3
+ 576 0050 FFF7FEFF 		bl	Qprintf
+  98:../Sources/LineScanCam.c **** 	
+  99:../Sources/LineScanCam.c **** 	return value;											//gibt den Zielwert zurück
+ 577              		.loc 1 99 0
+ 578 0054 7B68     		ldr	r3, [r7, #4]
+ 100:../Sources/LineScanCam.c **** 	
+ 101:../Sources/LineScanCam.c **** }
+ 579              		.loc 1 101 0
+ 580 0056 181C     		mov	r0, r3
+ 581 0058 BD46     		mov	sp, r7
+ 582 005a 04B0     		add	sp, sp, #16
+ 583              		@ sp needed for prologue
+ 584 005c 80BD     		pop	{r7, pc}
+ 585              	.L38:
+ 586 005e C046     		.align	2
+ 587              	.L37:
+ 588 0060 00000000 		.word	camData
+ 589 0064 00000000 		.word	SDA_SERIAL_OUTGOING_QUEUE
+ 590 0068 00000000 		.word	.LC4
+ 591 006c 0C000000 		.word	.LC6
+ 592              		.cfi_endproc
+ 593              	.LFE3:
+ 595              		.global	__aeabi_i2d
+ 596              		.global	__aeabi_dmul
+ 597              		.global	__aeabi_d2iz
+ 598              		.section	.rodata
+ 599 0019 000000   		.align	2
+ 600              	.LC12:
+ 601 001c 0D0A00   		.ascii	"\015\012\000"
+ 602 001f 00       		.align	2
+ 603              	.LC14:
+ 604 0020 43616C69 		.ascii	"Calibriert!\000"
+ 604      62726965 
+ 604      72742100 
+ 605              		.section	.text.calibcam,"ax",%progbits
+ 606              		.align	2
+ 607              		.global	calibcam
+ 608              		.code	16
+ 609              		.thumb_func
+ 611              	calibcam:
+ 612              	.LFB4:
+ 102:../Sources/LineScanCam.c **** 
+ 103:../Sources/LineScanCam.c **** void calibcam() {											//soll eigentlich noch die Kamera calibrieren, geht aber auch ohne
+ 613              		.loc 1 103 0
+ 614              		.cfi_startproc
+ 615 0000 90B5     		push	{r4, r7, lr}
+ 616              	.LCFI12:
+ 617              		.cfi_def_cfa_offset 12
+ 618              		.cfi_offset 4, -12
+ 619              		.cfi_offset 7, -8
+ 620              		.cfi_offset 14, -4
+ 621 0002 85B0     		sub	sp, sp, #20
+ 622              	.LCFI13:
+ 623              		.cfi_def_cfa_offset 32
+ 624 0004 00AF     		add	r7, sp, #0
+ 625              	.LCFI14:
+ 626              		.cfi_def_cfa_register 7
+ 104:../Sources/LineScanCam.c **** 															//jetzt wird hierdurch nur das Hauptprogramm gestartet, falls
+ 105:../Sources/LineScanCam.c **** 	if (active == 0) {									//es noch nicht gestartet ist
+ 627              		.loc 1 105 0
+ 628 0006 324B     		ldr	r3, .L46+8
+ 629 0008 1B68     		ldr	r3, [r3]
+ 630 000a 002B     		cmp	r3, #0
+ 631 000c 56D1     		bne	.L39
+ 632              	.LBB2:
+ 106:../Sources/LineScanCam.c **** 
+ 107:../Sources/LineScanCam.c **** 		int num = 0;									//locale Variablen
+ 633              		.loc 1 107 0
+ 634 000e 0023     		mov	r3, #0
+ 635 0010 FB60     		str	r3, [r7, #12]
+ 108:../Sources/LineScanCam.c **** 		int valbefore = camData[1];
+ 636              		.loc 1 108 0
+ 637 0012 304B     		ldr	r3, .L46+12
+ 638 0014 5B68     		ldr	r3, [r3, #4]
+ 639 0016 3B60     		str	r3, [r7]
+ 109:../Sources/LineScanCam.c **** 		int val;
+ 110:../Sources/LineScanCam.c **** 		int gesVal = 0;
+ 640              		.loc 1 110 0
+ 641 0018 0023     		mov	r3, #0
+ 642 001a 7B60     		str	r3, [r7, #4]
+ 111:../Sources/LineScanCam.c **** 					
+ 112:../Sources/LineScanCam.c **** 		for (num = 5; num < 124; num++) {				//nimmt alle Werte des Camerascans von 5 bis 124, die randwe
+ 643              		.loc 1 112 0
+ 644 001c 0523     		mov	r3, #5
+ 645 001e FB60     		str	r3, [r7, #12]
+ 646 0020 24E0     		b	.L41
+ 647              	.L45:
+ 113:../Sources/LineScanCam.c **** 														//diese oft nicht genau sind
+ 114:../Sources/LineScanCam.c **** 			valbefore = camData[num - 1];				//wert der position direkt daneben
+ 648              		.loc 1 114 0
+ 649 0022 FB68     		ldr	r3, [r7, #12]
+ 650 0024 5A1E     		sub	r2, r3, #1
+ 651 0026 2B4B     		ldr	r3, .L46+12
+ 652 0028 9200     		lsl	r2, r2, #2
+ 653 002a D358     		ldr	r3, [r2, r3]
+ 654 002c 3B60     		str	r3, [r7]
+ 115:../Sources/LineScanCam.c **** 						
+ 116:../Sources/LineScanCam.c **** 			if (valbefore > camData[num]) {				//berechnet den unterschied zwischen den beiden Werten
+ 655              		.loc 1 116 0
+ 656 002e 294B     		ldr	r3, .L46+12
+ 657 0030 FA68     		ldr	r2, [r7, #12]
+ 658 0032 9200     		lsl	r2, r2, #2
+ 659 0034 D258     		ldr	r2, [r2, r3]
+ 660 0036 3B68     		ldr	r3, [r7]
+ 661 0038 9A42     		cmp	r2, r3
+ 662 003a 07DA     		bge	.L42
+ 117:../Sources/LineScanCam.c **** 				val = valbefore - camData[num];
+ 663              		.loc 1 117 0
+ 664 003c 254B     		ldr	r3, .L46+12
+ 665 003e FA68     		ldr	r2, [r7, #12]
+ 666 0040 9200     		lsl	r2, r2, #2
+ 667 0042 D358     		ldr	r3, [r2, r3]
+ 668 0044 3A68     		ldr	r2, [r7]
+ 669 0046 D31A     		sub	r3, r2, r3
+ 670 0048 BB60     		str	r3, [r7, #8]
+ 671 004a 06E0     		b	.L43
+ 672              	.L42:
+ 118:../Sources/LineScanCam.c **** 			} else {
+ 119:../Sources/LineScanCam.c **** 			val = camData[num] - valbefore;
+ 673              		.loc 1 119 0
+ 674 004c 214B     		ldr	r3, .L46+12
+ 675 004e FA68     		ldr	r2, [r7, #12]
+ 676 0050 9200     		lsl	r2, r2, #2
+ 677 0052 D258     		ldr	r2, [r2, r3]
+ 678 0054 3B68     		ldr	r3, [r7]
+ 679 0056 D31A     		sub	r3, r2, r3
+ 680 0058 BB60     		str	r3, [r7, #8]
+ 681              	.L43:
+ 120:../Sources/LineScanCam.c **** 			}
+ 121:../Sources/LineScanCam.c **** 			if (val >= gesVal) {
+ 682              		.loc 1 121 0
+ 683 005a BA68     		ldr	r2, [r7, #8]
+ 684 005c 7B68     		ldr	r3, [r7, #4]
+ 685 005e 9A42     		cmp	r2, r3
+ 686 0060 01DB     		blt	.L44
+ 122:../Sources/LineScanCam.c **** 				gesVal = val;
+ 687              		.loc 1 122 0
+ 688 0062 BB68     		ldr	r3, [r7, #8]
+ 689 0064 7B60     		str	r3, [r7, #4]
+ 690              	.L44:
+ 112:../Sources/LineScanCam.c **** 		for (num = 5; num < 124; num++) {				//nimmt alle Werte des Camerascans von 5 bis 124, die randwe
+ 691              		.loc 1 112 0
+ 692 0066 FB68     		ldr	r3, [r7, #12]
+ 693 0068 0133     		add	r3, r3, #1
+ 694 006a FB60     		str	r3, [r7, #12]
+ 695              	.L41:
+ 112:../Sources/LineScanCam.c **** 		for (num = 5; num < 124; num++) {				//nimmt alle Werte des Camerascans von 5 bis 124, die randwe
+ 696              		.loc 1 112 0 is_stmt 0
+ 697 006c FB68     		ldr	r3, [r7, #12]
+ 698 006e 7B2B     		cmp	r3, #123
+ 699 0070 D7DD     		ble	.L45
+ 123:../Sources/LineScanCam.c **** 			}
+ 124:../Sources/LineScanCam.c **** 		}
+ 125:../Sources/LineScanCam.c **** 		checkLineStep = gesVal * 0.8;					//um wv der Wert des nächsten Punkts in camData[128] mindestens
+ 700              		.loc 1 125 0 is_stmt 1
+ 701 0072 7868     		ldr	r0, [r7, #4]
+ 702 0074 FFF7FEFF 		bl	__aeabi_i2d
+ 703 0078 031C     		mov	r3, r0
+ 704 007a 0C1C     		mov	r4, r1
+ 705 007c 181C     		mov	r0, r3
+ 706 007e 211C     		mov	r1, r4
+ 707 0080 124B     		ldr	r3, .L46+4
+ 708 0082 114A     		ldr	r2, .L46
+ 709 0084 FFF7FEFF 		bl	__aeabi_dmul
+ 710 0088 031C     		mov	r3, r0
+ 711 008a 0C1C     		mov	r4, r1
+ 712 008c 181C     		mov	r0, r3
+ 713 008e 211C     		mov	r1, r4
+ 714 0090 FFF7FEFF 		bl	__aeabi_d2iz
+ 715 0094 021C     		mov	r2, r0
+ 716 0096 104B     		ldr	r3, .L46+16
+ 717 0098 1A60     		str	r2, [r3]
+ 126:../Sources/LineScanCam.c **** 												//damit das programm nicht abbricht (damit es eine "Linie" erkennt)
+ 127:../Sources/LineScanCam.c **** 		
+ 128:../Sources/LineScanCam.c **** 		
+ 129:../Sources/LineScanCam.c **** 		
+ 130:../Sources/LineScanCam.c **** 		TERMINAL_PRINTF("\r\n");
+ 718              		.loc 1 130 0
+ 719 009a 104A     		ldr	r2, .L46+20
+ 720 009c 104B     		ldr	r3, .L46+24
+ 721 009e 101C     		mov	r0, r2
+ 722 00a0 191C     		mov	r1, r3
+ 723 00a2 FFF7FEFF 		bl	Qprintf
+ 131:../Sources/LineScanCam.c **** 		TERMINAL_PRINTF("Calibriert!");
+ 724              		.loc 1 131 0
+ 725 00a6 0D4A     		ldr	r2, .L46+20
+ 726 00a8 0E4B     		ldr	r3, .L46+28
+ 727 00aa 101C     		mov	r0, r2
+ 728 00ac 191C     		mov	r1, r3
+ 729 00ae FFF7FEFF 		bl	Qprintf
+ 132:../Sources/LineScanCam.c **** 		forceAllOff();										//schält alle LEDs aus
+ 730              		.loc 1 132 0
+ 731 00b2 FFF7FEFF 		bl	forceAllOff
+ 133:../Sources/LineScanCam.c **** 		active = 1;
+ 732              		.loc 1 133 0
+ 733 00b6 064B     		ldr	r3, .L46+8
+ 734 00b8 0122     		mov	r2, #1
+ 735 00ba 1A60     		str	r2, [r3]
+ 736              	.L39:
+ 737              	.LBE2:
+ 134:../Sources/LineScanCam.c **** 	}
+ 135:../Sources/LineScanCam.c **** 		
+ 136:../Sources/LineScanCam.c **** }
+ 738              		.loc 1 136 0
+ 739 00bc BD46     		mov	sp, r7
+ 740 00be 05B0     		add	sp, sp, #20
+ 741              		@ sp needed for prologue
+ 742 00c0 90BD     		pop	{r4, r7, pc}
+ 743              	.L47:
+ 744 00c2 C046C046 		.align	3
+ 744      C046
+ 745              	.L46:
+ 746 00c8 9A999999 		.word	-1717986918
+ 747 00cc 9999E93F 		.word	1072273817
+ 748 00d0 00000000 		.word	active
+ 749 00d4 00000000 		.word	camData
+ 750 00d8 00000000 		.word	checkLineStep
+ 751 00dc 00000000 		.word	SDA_SERIAL_OUTGOING_QUEUE
+ 752 00e0 1C000000 		.word	.LC12
+ 753 00e4 20000000 		.word	.LC14
+ 754              		.cfi_endproc
+ 755              	.LFE4:
+ 757              		.global	__aeabi_i2f
+ 758              		.global	__aeabi_f2d
+ 759              		.global	__aeabi_ddiv
+ 760              		.global	__aeabi_d2f
+ 761              		.section	.rodata
+ 762              		.align	2
+ 763              	.LC21:
+ 764 002c 20202020 		.ascii	"     I %d\000"
+ 764      20492025 
+ 764      6400
+ 765 0036 0000     		.align	2
+ 766              	.LC23:
+ 767 0038 20492025 		.ascii	" I %d\000"
+ 767      6400
+ 768              		.global	__aeabi_fmul
+ 769              		.global	__aeabi_f2iz
+ 770 003e 0000     		.align	2
+ 771              	.LC25:
+ 772 0040 20417573 		.ascii	" Auslenkung: %d\015\012\000"
+ 772      6C656E6B 
+ 772      756E673A 
+ 772      2025640D 
+ 772      0A00
+ 773              		.global	__aeabi_fadd
+ 774              		.section	.text.calcdirection,"ax",%progbits
+ 775              		.align	2
+ 776              		.global	calcdirection
+ 777              		.code	16
+ 778              		.thumb_func
+ 780              	calcdirection:
+ 781              	.LFB5:
+ 137:../Sources/LineScanCam.c **** 
+ 138:../Sources/LineScanCam.c **** void calcdirection() {										//methode zur Berechnung der Servoauslenkung
+ 782              		.loc 1 138 0
+ 783              		.cfi_startproc
+ 784 0000 F0B5     		push	{r4, r5, r6, r7, lr}
+ 785              	.LCFI15:
+ 786              		.cfi_def_cfa_offset 20
+ 787              		.cfi_offset 4, -20
+ 788              		.cfi_offset 5, -16
+ 789              		.cfi_offset 6, -12
+ 790              		.cfi_offset 7, -8
+ 791              		.cfi_offset 14, -4
+ 792 0002 83B0     		sub	sp, sp, #12
+ 793              	.LCFI16:
+ 794              		.cfi_def_cfa_offset 32
+ 795 0004 00AF     		add	r7, sp, #0
+ 796              	.LCFI17:
+ 797              		.cfi_def_cfa_register 7
+ 139:../Sources/LineScanCam.c **** 	
+ 140:../Sources/LineScanCam.c **** 	float ausl = 0;
+ 798              		.loc 1 140 0
+ 799 0006 0023     		mov	r3, #0
+ 800 0008 7B60     		str	r3, [r7, #4]
+ 141:../Sources/LineScanCam.c **** 	if (linemissing == 0) {
+ 801              		.loc 1 141 0
+ 802 000a 574B     		ldr	r3, .L53+16
+ 803 000c 1B68     		ldr	r3, [r3]
+ 804 000e 002B     		cmp	r3, #0
+ 805 0010 00D0     		beq	.LCB656
+ 806 0012 7BE0     		b	.L49	@long jump
+ 807              	.LCB656:
+ 808              	.LBB3:
+ 142:../Sources/LineScanCam.c **** 		int targetloc = getBlackPos();										//findet heraus wo die Linie ist
+ 809              		.loc 1 142 0
+ 810 0014 FFF7FEFF 		bl	getBlackPos
+ 811 0018 031C     		mov	r3, r0
+ 812 001a 3B60     		str	r3, [r7]
+ 143:../Sources/LineScanCam.c **** 		
+ 144:../Sources/LineScanCam.c **** 		if (targetloc >= 54 && targetloc <= 74) {
+ 813              		.loc 1 144 0
+ 814 001c 3B68     		ldr	r3, [r7]
+ 815 001e 352B     		cmp	r3, #53
+ 816 0020 06DD     		ble	.L50
+ 817              		.loc 1 144 0 is_stmt 0
+ 818 0022 3B68     		ldr	r3, [r7]
+ 819 0024 4A2B     		cmp	r3, #74
+ 820 0026 03DC     		bgt	.L50
+ 145:../Sources/LineScanCam.c **** 			Sausl = 0;
+ 821              		.loc 1 145 0 is_stmt 1
+ 822 0028 504B     		ldr	r3, .L53+20
+ 823 002a 0022     		mov	r2, #0
+ 824 002c 1A60     		str	r2, [r3]
+ 825 002e 2AE0     		b	.L51
+ 826              	.L50:
+ 146:../Sources/LineScanCam.c **** 		} else {
+ 147:../Sources/LineScanCam.c **** 			ausl = (float) targetloc / 64.0 * (float) auslmultiplier;		//berechnet die auslenkung um der Lin
+ 827              		.loc 1 147 0
+ 828 0030 3868     		ldr	r0, [r7]
+ 829 0032 FFF7FEFF 		bl	__aeabi_i2f
+ 830 0036 031C     		add	r3, r0, #0
+ 831 0038 181C     		add	r0, r3, #0
+ 832 003a FFF7FEFF 		bl	__aeabi_f2d
+ 833 003e 031C     		mov	r3, r0
+ 834 0040 0C1C     		mov	r4, r1
+ 835 0042 181C     		mov	r0, r3
+ 836 0044 211C     		mov	r1, r4
+ 837 0046 454B     		ldr	r3, .L53+4
+ 838 0048 434A     		ldr	r2, .L53
+ 839 004a FFF7FEFF 		bl	__aeabi_ddiv
+ 840 004e 031C     		mov	r3, r0
+ 841 0050 0C1C     		mov	r4, r1
+ 842 0052 1D1C     		mov	r5, r3
+ 843 0054 261C     		mov	r6, r4
+ 844 0056 464B     		ldr	r3, .L53+24
+ 845 0058 1B68     		ldr	r3, [r3]
+ 846 005a 181C     		add	r0, r3, #0
+ 847 005c FFF7FEFF 		bl	__aeabi_f2d
+ 848 0060 031C     		mov	r3, r0
+ 849 0062 0C1C     		mov	r4, r1
+ 850 0064 281C     		mov	r0, r5
+ 851 0066 311C     		mov	r1, r6
+ 852 0068 1A1C     		mov	r2, r3
+ 853 006a 231C     		mov	r3, r4
+ 854 006c FFF7FEFF 		bl	__aeabi_dmul
+ 855 0070 031C     		mov	r3, r0
+ 856 0072 0C1C     		mov	r4, r1
+ 857 0074 181C     		mov	r0, r3
+ 858 0076 211C     		mov	r1, r4
+ 859 0078 FFF7FEFF 		bl	__aeabi_d2f
+ 860 007c 031C     		add	r3, r0, #0
+ 861 007e 7B60     		str	r3, [r7, #4]
+ 148:../Sources/LineScanCam.c **** 			Sausl = ausl;														//setzt die globale Variable, mit welcher der Servo angesteuert wird
+ 862              		.loc 1 148 0
+ 863 0080 3A4B     		ldr	r3, .L53+20
+ 864 0082 7A68     		ldr	r2, [r7, #4]
+ 865 0084 1A60     		str	r2, [r3]
+ 866              	.L51:
+ 149:../Sources/LineScanCam.c **** 		}
+ 150:../Sources/LineScanCam.c **** 		
+ 151:../Sources/LineScanCam.c **** 		TERMINAL_PRINTF("     I %d", camData[1]);							//schreibt die Werte ins Terminal
+ 867              		.loc 1 151 0
+ 868 0086 3B4B     		ldr	r3, .L53+28
+ 869 0088 5B68     		ldr	r3, [r3, #4]
+ 870 008a 3B49     		ldr	r1, .L53+32
+ 871 008c 3B4A     		ldr	r2, .L53+36
+ 872 008e 081C     		mov	r0, r1
+ 873 0090 111C     		mov	r1, r2
+ 874 0092 1A1C     		mov	r2, r3
+ 875 0094 FFF7FEFF 		bl	Qprintf
+ 152:../Sources/LineScanCam.c **** 		TERMINAL_PRINTF(" I %d", camData[30]);
+ 876              		.loc 1 152 0
+ 877 0098 364B     		ldr	r3, .L53+28
+ 878 009a 9B6F     		ldr	r3, [r3, #120]
+ 879 009c 3649     		ldr	r1, .L53+32
+ 880 009e 384A     		ldr	r2, .L53+40
+ 881 00a0 081C     		mov	r0, r1
+ 882 00a2 111C     		mov	r1, r2
+ 883 00a4 1A1C     		mov	r2, r3
+ 884 00a6 FFF7FEFF 		bl	Qprintf
+ 153:../Sources/LineScanCam.c **** 		TERMINAL_PRINTF(" I %d", camData[60]);
+ 885              		.loc 1 153 0
+ 886 00aa 324A     		ldr	r2, .L53+28
+ 887 00ac F023     		mov	r3, #240
+ 888 00ae D358     		ldr	r3, [r2, r3]
+ 889 00b0 3149     		ldr	r1, .L53+32
+ 890 00b2 334A     		ldr	r2, .L53+40
+ 891 00b4 081C     		mov	r0, r1
+ 892 00b6 111C     		mov	r1, r2
+ 893 00b8 1A1C     		mov	r2, r3
+ 894 00ba FFF7FEFF 		bl	Qprintf
+ 154:../Sources/LineScanCam.c **** 		TERMINAL_PRINTF(" I %d", camData[90]);
+ 895              		.loc 1 154 0
+ 896 00be 2D4A     		ldr	r2, .L53+28
+ 897 00c0 B423     		mov	r3, #180
+ 898 00c2 5B00     		lsl	r3, r3, #1
+ 899 00c4 D358     		ldr	r3, [r2, r3]
+ 900 00c6 2C49     		ldr	r1, .L53+32
+ 901 00c8 2D4A     		ldr	r2, .L53+40
+ 902 00ca 081C     		mov	r0, r1
+ 903 00cc 111C     		mov	r1, r2
+ 904 00ce 1A1C     		mov	r2, r3
+ 905 00d0 FFF7FEFF 		bl	Qprintf
+ 155:../Sources/LineScanCam.c **** 		TERMINAL_PRINTF(" I %d", camData[115]);
+ 906              		.loc 1 155 0
+ 907 00d4 274A     		ldr	r2, .L53+28
+ 908 00d6 E623     		mov	r3, #230
+ 909 00d8 5B00     		lsl	r3, r3, #1
+ 910 00da D358     		ldr	r3, [r2, r3]
+ 911 00dc 2649     		ldr	r1, .L53+32
+ 912 00de 284A     		ldr	r2, .L53+40
+ 913 00e0 081C     		mov	r0, r1
+ 914 00e2 111C     		mov	r1, r2
+ 915 00e4 1A1C     		mov	r2, r3
+ 916 00e6 FFF7FEFF 		bl	Qprintf
+ 156:../Sources/LineScanCam.c **** 		TERMINAL_PRINTF(" Auslenkung: %d\r\n", (int) (ausl * 10000));
+ 917              		.loc 1 156 0
+ 918 00ea 7868     		ldr	r0, [r7, #4]
+ 919 00ec 2549     		ldr	r1, .L53+44
+ 920 00ee FFF7FEFF 		bl	__aeabi_fmul
+ 921 00f2 031C     		add	r3, r0, #0
+ 922 00f4 181C     		add	r0, r3, #0
+ 923 00f6 FFF7FEFF 		bl	__aeabi_f2iz
+ 924 00fa 031C     		mov	r3, r0
+ 925 00fc 1E49     		ldr	r1, .L53+32
+ 926 00fe 224A     		ldr	r2, .L53+48
+ 927 0100 081C     		mov	r0, r1
+ 928 0102 111C     		mov	r1, r2
+ 929 0104 1A1C     		mov	r2, r3
+ 930 0106 FFF7FEFF 		bl	Qprintf
+ 931 010a 20E0     		b	.L48
+ 932              	.L49:
+ 933              	.LBE3:
+ 157:../Sources/LineScanCam.c **** 		
+ 158:../Sources/LineScanCam.c **** 	} else {
+ 159:../Sources/LineScanCam.c **** 		Sausl = Sausl * 2;
+ 934              		.loc 1 159 0
+ 935 010c 174B     		ldr	r3, .L53+20
+ 936 010e 1B68     		ldr	r3, [r3]
+ 937 0110 181C     		add	r0, r3, #0
+ 938 0112 191C     		add	r1, r3, #0
+ 939 0114 FFF7FEFF 		bl	__aeabi_fadd
+ 940 0118 031C     		add	r3, r0, #0
+ 941 011a 1A1C     		add	r2, r3, #0
+ 942 011c 134B     		ldr	r3, .L53+20
+ 943 011e 1A60     		str	r2, [r3]
+ 160:../Sources/LineScanCam.c **** 		setMotorSpeed(Motorspeed * 0.8);
+ 944              		.loc 1 160 0
+ 945 0120 1A4B     		ldr	r3, .L53+52
+ 946 0122 1B68     		ldr	r3, [r3]
+ 947 0124 181C     		add	r0, r3, #0
+ 948 0126 FFF7FEFF 		bl	__aeabi_f2d
+ 949 012a 031C     		mov	r3, r0
+ 950 012c 0C1C     		mov	r4, r1
+ 951 012e 181C     		mov	r0, r3
+ 952 0130 211C     		mov	r1, r4
+ 953 0132 0B4A     		ldr	r2, .L53+8
+ 954 0134 0B4B     		ldr	r3, .L53+12
+ 955 0136 FFF7FEFF 		bl	__aeabi_dmul
+ 956 013a 031C     		mov	r3, r0
+ 957 013c 0C1C     		mov	r4, r1
+ 958 013e 181C     		mov	r0, r3
+ 959 0140 211C     		mov	r1, r4
+ 960 0142 FFF7FEFF 		bl	__aeabi_d2f
+ 961 0146 031C     		add	r3, r0, #0
+ 962 0148 181C     		add	r0, r3, #0
+ 963 014a FFF7FEFF 		bl	setMotorSpeed
+ 964              	.L48:
+ 161:../Sources/LineScanCam.c **** 	}
+ 162:../Sources/LineScanCam.c **** 	
+ 163:../Sources/LineScanCam.c **** }
+ 965              		.loc 1 163 0
+ 966 014e BD46     		mov	sp, r7
+ 967 0150 03B0     		add	sp, sp, #12
+ 968              		@ sp needed for prologue
+ 969 0152 F0BD     		pop	{r4, r5, r6, r7, pc}
+ 970              	.L54:
+ 971 0154 C046C046 		.align	3
+ 972              	.L53:
+ 973 0158 00000000 		.word	0
+ 974 015c 00005040 		.word	1078984704
+ 975 0160 9A999999 		.word	-1717986918
+ 976 0164 9999E93F 		.word	1072273817
+ 977 0168 00000000 		.word	linemissing
+ 978 016c 00000000 		.word	Sausl
+ 979 0170 00000000 		.word	auslmultiplier
+ 980 0174 00000000 		.word	camData
+ 981 0178 00000000 		.word	SDA_SERIAL_OUTGOING_QUEUE
+ 982 017c 2C000000 		.word	.LC21
+ 983 0180 38000000 		.word	.LC23
+ 984 0184 00401C46 		.word	1176256512
+ 985 0188 40000000 		.word	.LC25
+ 986 018c 00000000 		.word	Motorspeed
+ 987              		.cfi_endproc
+ 988              	.LFE5:
+ 990              		.section	.rodata
+ 991 0052 0000     		.align	2
+ 992              	.LC31:
+ 993 0054 204C494E 		.ascii	" LINE MISSING!\000"
+ 993      45204D49 
+ 993      5353494E 
+ 993      472100
+ 994 0063 00       		.align	2
+ 995              	.LC37:
+ 996 0064 20204C69 		.ascii	"  Linestep: %d\000"
+ 996      6E657374 
+ 996      65703A20 
+ 996      256400
+ 997 0073 00       		.align	2
+ 998              	.LC39:
+ 999 0074 202F2025 		.ascii	" / %d\015\012\000"
+ 999      640D0A00 
+ 1000              		.section	.text.checkforLine,"ax",%progbits
+ 1001              		.align	2
+ 1002              		.global	checkforLine
+ 1003              		.code	16
+ 1004              		.thumb_func
+ 1006              	checkforLine:
+ 1007              	.LFB6:
+ 164:../Sources/LineScanCam.c **** 
+ 165:../Sources/LineScanCam.c **** void checkforLine() {										//Methode um zu prüfen ob die Linie noch im sichtfeld ist
+ 1008              		.loc 1 165 0
+ 1009              		.cfi_startproc
+ 1010 0000 80B5     		push	{r7, lr}
+ 1011              	.LCFI18:
+ 1012              		.cfi_def_cfa_offset 8
+ 1013              		.cfi_offset 7, -8
+ 1014              		.cfi_offset 14, -4
+ 1015 0002 84B0     		sub	sp, sp, #16
+ 1016              	.LCFI19:
+ 1017              		.cfi_def_cfa_offset 24
+ 1018 0004 00AF     		add	r7, sp, #0
+ 1019              	.LCFI20:
+ 1020              		.cfi_def_cfa_register 7
+ 166:../Sources/LineScanCam.c **** 	
+ 167:../Sources/LineScanCam.c **** 			int num = 0;									//locale Variablen
+ 1021              		.loc 1 167 0
+ 1022 0006 0023     		mov	r3, #0
+ 1023 0008 FB60     		str	r3, [r7, #12]
+ 168:../Sources/LineScanCam.c **** 			int valbefore = camData[1];
+ 1024              		.loc 1 168 0
+ 1025 000a 344B     		ldr	r3, .L63
+ 1026 000c 5B68     		ldr	r3, [r3, #4]
+ 1027 000e 3B60     		str	r3, [r7]
+ 169:../Sources/LineScanCam.c **** 			int val;
+ 170:../Sources/LineScanCam.c **** 			int gesVal = 0;
+ 1028              		.loc 1 170 0
+ 1029 0010 0023     		mov	r3, #0
+ 1030 0012 7B60     		str	r3, [r7, #4]
+ 171:../Sources/LineScanCam.c **** 			
+ 172:../Sources/LineScanCam.c **** 			for (num = 5; num < 124; num++) {				//nimmt alle Werte des Camerascans von 5 bis 124, die randw
+ 1031              		.loc 1 172 0
+ 1032 0014 0523     		mov	r3, #5
+ 1033 0016 FB60     		str	r3, [r7, #12]
+ 1034 0018 24E0     		b	.L56
+ 1035              	.L60:
+ 173:../Sources/LineScanCam.c **** 															//diese oft nicht genau sind
+ 174:../Sources/LineScanCam.c **** 				valbefore = camData[num - 1];				//wert der position direkt daneben
+ 1036              		.loc 1 174 0
+ 1037 001a FB68     		ldr	r3, [r7, #12]
+ 1038 001c 5A1E     		sub	r2, r3, #1
+ 1039 001e 2F4B     		ldr	r3, .L63
+ 1040 0020 9200     		lsl	r2, r2, #2
+ 1041 0022 D358     		ldr	r3, [r2, r3]
+ 1042 0024 3B60     		str	r3, [r7]
+ 175:../Sources/LineScanCam.c **** 				
+ 176:../Sources/LineScanCam.c **** 				if (valbefore > camData[num]) {				//berechnet den unterschied zwischen den beiden Werten
+ 1043              		.loc 1 176 0
+ 1044 0026 2D4B     		ldr	r3, .L63
+ 1045 0028 FA68     		ldr	r2, [r7, #12]
+ 1046 002a 9200     		lsl	r2, r2, #2
+ 1047 002c D258     		ldr	r2, [r2, r3]
+ 1048 002e 3B68     		ldr	r3, [r7]
+ 1049 0030 9A42     		cmp	r2, r3
+ 1050 0032 07DA     		bge	.L57
+ 177:../Sources/LineScanCam.c **** 					val = valbefore - camData[num];
+ 1051              		.loc 1 177 0
+ 1052 0034 294B     		ldr	r3, .L63
+ 1053 0036 FA68     		ldr	r2, [r7, #12]
+ 1054 0038 9200     		lsl	r2, r2, #2
+ 1055 003a D358     		ldr	r3, [r2, r3]
+ 1056 003c 3A68     		ldr	r2, [r7]
+ 1057 003e D31A     		sub	r3, r2, r3
+ 1058 0040 BB60     		str	r3, [r7, #8]
+ 1059 0042 06E0     		b	.L58
+ 1060              	.L57:
+ 178:../Sources/LineScanCam.c **** 				} else {
+ 179:../Sources/LineScanCam.c **** 					val = camData[num] - valbefore;
+ 1061              		.loc 1 179 0
+ 1062 0044 254B     		ldr	r3, .L63
+ 1063 0046 FA68     		ldr	r2, [r7, #12]
+ 1064 0048 9200     		lsl	r2, r2, #2
+ 1065 004a D258     		ldr	r2, [r2, r3]
+ 1066 004c 3B68     		ldr	r3, [r7]
+ 1067 004e D31A     		sub	r3, r2, r3
+ 1068 0050 BB60     		str	r3, [r7, #8]
+ 1069              	.L58:
+ 180:../Sources/LineScanCam.c **** 				}
+ 181:../Sources/LineScanCam.c **** 				if (val >= gesVal) {
+ 1070              		.loc 1 181 0
+ 1071 0052 BA68     		ldr	r2, [r7, #8]
+ 1072 0054 7B68     		ldr	r3, [r7, #4]
+ 1073 0056 9A42     		cmp	r2, r3
+ 1074 0058 01DB     		blt	.L59
+ 182:../Sources/LineScanCam.c **** 					gesVal = val;
+ 1075              		.loc 1 182 0
+ 1076 005a BB68     		ldr	r3, [r7, #8]
+ 1077 005c 7B60     		str	r3, [r7, #4]
+ 1078              	.L59:
+ 172:../Sources/LineScanCam.c **** 			for (num = 5; num < 124; num++) {				//nimmt alle Werte des Camerascans von 5 bis 124, die randw
+ 1079              		.loc 1 172 0
+ 1080 005e FB68     		ldr	r3, [r7, #12]
+ 1081 0060 0133     		add	r3, r3, #1
+ 1082 0062 FB60     		str	r3, [r7, #12]
+ 1083              	.L56:
+ 172:../Sources/LineScanCam.c **** 			for (num = 5; num < 124; num++) {				//nimmt alle Werte des Camerascans von 5 bis 124, die randw
+ 1084              		.loc 1 172 0 is_stmt 0
+ 1085 0064 FB68     		ldr	r3, [r7, #12]
+ 1086 0066 7B2B     		cmp	r3, #123
+ 1087 0068 D7DD     		ble	.L60
+ 183:../Sources/LineScanCam.c **** 				}
+ 184:../Sources/LineScanCam.c **** 			}
+ 185:../Sources/LineScanCam.c **** 		
+ 186:../Sources/LineScanCam.c **** 			if (gesVal <= checkLineStep) {					//falls der unterschied der beiden Werte zu klein ist wird ke
+ 1088              		.loc 1 186 0 is_stmt 1
+ 1089 006a 1D4B     		ldr	r3, .L63+4
+ 1090 006c 1B68     		ldr	r3, [r3]
+ 1091 006e 7A68     		ldr	r2, [r7, #4]
+ 1092 0070 9A42     		cmp	r2, r3
+ 1093 0072 16DC     		bgt	.L61
+ 187:../Sources/LineScanCam.c **** 				TERMINAL_PRINTF(" LINE MISSING!");
+ 1094              		.loc 1 187 0
+ 1095 0074 1B4A     		ldr	r2, .L63+8
+ 1096 0076 1C4B     		ldr	r3, .L63+12
+ 1097 0078 101C     		mov	r0, r2
+ 1098 007a 191C     		mov	r1, r3
+ 1099 007c FFF7FEFF 		bl	Qprintf
+ 188:../Sources/LineScanCam.c **** 				if (linemissing == 0) {						//linie gefunden, der automatische Modus wird deaktiviert
+ 1100              		.loc 1 188 0
+ 1101 0080 1A4B     		ldr	r3, .L63+16
+ 1102 0082 1B68     		ldr	r3, [r3]
+ 1103 0084 002B     		cmp	r3, #0
+ 1104 0086 15D1     		bne	.L62
+ 189:../Sources/LineScanCam.c **** 					linemissing = 1;
+ 1105              		.loc 1 189 0
+ 1106 0088 184B     		ldr	r3, .L63+16
+ 1107 008a 0122     		mov	r2, #1
+ 1108 008c 1A60     		str	r2, [r3]
+ 190:../Sources/LineScanCam.c **** 					if (TFC_Ticker[3] >=  linetimeout) {
+ 1109              		.loc 1 190 0
+ 1110 008e 184B     		ldr	r3, .L63+20
+ 1111 0090 DA68     		ldr	r2, [r3, #12]
+ 1112 0092 184B     		ldr	r3, .L63+24
+ 1113 0094 1B68     		ldr	r3, [r3]
+ 1114 0096 9A42     		cmp	r2, r3
+ 1115 0098 0CD3     		bcc	.L62
+ 191:../Sources/LineScanCam.c **** 						TFC_Ticker[3] = 0;
+ 1116              		.loc 1 191 0
+ 1117 009a 154B     		ldr	r3, .L63+20
+ 1118 009c 0022     		mov	r2, #0
+ 1119 009e DA60     		str	r2, [r3, #12]
+ 1120 00a0 08E0     		b	.L62
+ 1121              	.L61:
+ 192:../Sources/LineScanCam.c **** 					}
+ 193:../Sources/LineScanCam.c **** 				}
+ 194:../Sources/LineScanCam.c **** 			} else  {										//linie vorhanden, variablen entsprechend setzen
+ 195:../Sources/LineScanCam.c **** 				active = 1;
+ 1122              		.loc 1 195 0
+ 1123 00a2 154B     		ldr	r3, .L63+28
+ 1124 00a4 0122     		mov	r2, #1
+ 1125 00a6 1A60     		str	r2, [r3]
+ 196:../Sources/LineScanCam.c **** 				linemissing = 0;
+ 1126              		.loc 1 196 0
+ 1127 00a8 104B     		ldr	r3, .L63+16
+ 1128 00aa 0022     		mov	r2, #0
+ 1129 00ac 1A60     		str	r2, [r3]
+ 197:../Sources/LineScanCam.c **** 				TFC_Ticker[3] = 0;
+ 1130              		.loc 1 197 0
+ 1131 00ae 104B     		ldr	r3, .L63+20
+ 1132 00b0 0022     		mov	r2, #0
+ 1133 00b2 DA60     		str	r2, [r3, #12]
+ 1134              	.L62:
+ 198:../Sources/LineScanCam.c **** 			}
+ 199:../Sources/LineScanCam.c **** 
+ 200:../Sources/LineScanCam.c **** 			TERMINAL_PRINTF("  Linestep: %d", gesVal);
+ 1135              		.loc 1 200 0
+ 1136 00b4 0B49     		ldr	r1, .L63+8
+ 1137 00b6 114A     		ldr	r2, .L63+32
+ 1138 00b8 7B68     		ldr	r3, [r7, #4]
+ 1139 00ba 081C     		mov	r0, r1
+ 1140 00bc 111C     		mov	r1, r2
+ 1141 00be 1A1C     		mov	r2, r3
+ 1142 00c0 FFF7FEFF 		bl	Qprintf
+ 201:../Sources/LineScanCam.c **** 			TERMINAL_PRINTF(" / %d\r\n", checkLineStep);
+ 1143              		.loc 1 201 0
+ 1144 00c4 064B     		ldr	r3, .L63+4
+ 1145 00c6 1B68     		ldr	r3, [r3]
+ 1146 00c8 0649     		ldr	r1, .L63+8
+ 1147 00ca 0D4A     		ldr	r2, .L63+36
+ 1148 00cc 081C     		mov	r0, r1
+ 1149 00ce 111C     		mov	r1, r2
+ 1150 00d0 1A1C     		mov	r2, r3
+ 1151 00d2 FFF7FEFF 		bl	Qprintf
+ 202:../Sources/LineScanCam.c **** 	
+ 203:../Sources/LineScanCam.c **** }
+ 1152              		.loc 1 203 0
+ 1153 00d6 BD46     		mov	sp, r7
+ 1154 00d8 04B0     		add	sp, sp, #16
+ 1155              		@ sp needed for prologue
+ 1156 00da 80BD     		pop	{r7, pc}
+ 1157              	.L64:
+ 1158              		.align	2
+ 1159              	.L63:
+ 1160 00dc 00000000 		.word	camData
+ 1161 00e0 00000000 		.word	checkLineStep
+ 1162 00e4 00000000 		.word	SDA_SERIAL_OUTGOING_QUEUE
+ 1163 00e8 54000000 		.word	.LC31
+ 1164 00ec 00000000 		.word	linemissing
+ 1165 00f0 00000000 		.word	TFC_Ticker
+ 1166 00f4 00000000 		.word	linetimeout
+ 1167 00f8 00000000 		.word	active
+ 1168 00fc 64000000 		.word	.LC37
+ 1169 0100 74000000 		.word	.LC39
+ 1170              		.cfi_endproc
+ 1171              	.LFE6:
+ 1173              		.text
+ 1174              	.Letext0:
+ 1175              		.file 2 "D:/Programme/CodeWarrior/CW MCU v10.6.4/MCU/ARM_GCC_Support/ewl/EWL_C/include/cstdint"
+ 1176              		.file 3 "D:/NWT/Workplace/FRDM-TFC/Project_Headers/TFC\\TFC_Queue.h"
+ 1177              		.file 4 "D:/NWT/Workplace/FRDM-TFC/Project_Headers/TFC\\TFC_ARM_SysTick.h"
+ 1178              		.file 5 "D:/NWT/Workplace/FRDM-TFC/Project_Headers/TFC\\TFC_LineScanCamera.h"
+ 1179              		.file 6 "D:/NWT/Workplace/FRDM-TFC/Project_Headers/TFC\\TFC_UART.h"
+ 1180              		.file 7 "D:/NWT/Workplace/FRDM-TFC/Project_Headers/config.h"
+ 1181              		.file 8 "D:/NWT/Workplace/FRDM-TFC/Project_Headers/LineScanCam.h"
+ 1182              		.file 9 "D:/NWT/Workplace/FRDM-TFC/Project_Headers/motorServo.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 LineScanCam.c
+                            *COM*:00000004 motor
+                            *COM*:00000004 servo
+                            *COM*:00000004 LEDconfig
+                            *COM*:00000004 target
+                            *COM*:00000004 auslmultiplier
+                            *COM*:00000004 speedMultiplier
+                            *COM*:00000004 minSpeed
+                            *COM*:00000004 linetimeout
+                            *COM*:00000004 ruckwartsZeit
+                            *COM*:00000200 camData
+C:\Users\Darkp\AppData\Local\Temp\cc0flgpE.s:32     .bss.active:00000000 active
+C:\Users\Darkp\AppData\Local\Temp\cc0flgpE.s:29     .bss.active:00000000 $d
+                            *COM*:00000004 Sausl
+C:\Users\Darkp\AppData\Local\Temp\cc0flgpE.s:40     .bss.linemissing:00000000 linemissing
+C:\Users\Darkp\AppData\Local\Temp\cc0flgpE.s:37     .bss.linemissing:00000000 $d
+C:\Users\Darkp\AppData\Local\Temp\cc0flgpE.s:47     .data.checkLineStep:00000000 checkLineStep
+C:\Users\Darkp\AppData\Local\Temp\cc0flgpE.s:44     .data.checkLineStep:00000000 $d
+                            *COM*:00000004 Motorspeed
+                            *COM*:00000004 Servoausl
+                            *COM*:00000004 drivingBack
+C:\Users\Darkp\AppData\Local\Temp\cc0flgpE.s:57     .bss.sAusl:00000000 sAusl
+C:\Users\Darkp\AppData\Local\Temp\cc0flgpE.s:54     .bss.sAusl:00000000 $d
+C:\Users\Darkp\AppData\Local\Temp\cc0flgpE.s:60     .text.loadCameraData:00000000 $t
+C:\Users\Darkp\AppData\Local\Temp\cc0flgpE.s:65     .text.loadCameraData:00000000 loadCameraData
+C:\Users\Darkp\AppData\Local\Temp\cc0flgpE.s:167    .text.loadCameraData:00000084 $d
+C:\Users\Darkp\AppData\Local\Temp\cc0flgpE.s:173    .text.calcquarterLED:00000000 $t
+C:\Users\Darkp\AppData\Local\Temp\cc0flgpE.s:178    .text.calcquarterLED:00000000 calcquarterLED
+C:\Users\Darkp\AppData\Local\Temp\cc0flgpE.s:410    .text.getLowestIndex:00000000 getLowestIndex
+C:\Users\Darkp\AppData\Local\Temp\cc0flgpE.s:400    .text.calcquarterLED:00000150 $d
+C:\Users\Darkp\AppData\Local\Temp\cc0flgpE.s:405    .text.getLowestIndex:00000000 $t
+C:\Users\Darkp\AppData\Local\Temp\cc0flgpE.s:510    .rodata:00000000 $d
+C:\Users\Darkp\AppData\Local\Temp\cc0flgpE.s:517    .text.getBlackPos:00000000 $t
+C:\Users\Darkp\AppData\Local\Temp\cc0flgpE.s:522    .text.getBlackPos:00000000 getBlackPos
+C:\Users\Darkp\AppData\Local\Temp\cc0flgpE.s:588    .text.getBlackPos:00000060 $d
+C:\Users\Darkp\AppData\Local\Temp\cc0flgpE.s:606    .text.calibcam:00000000 $t
+C:\Users\Darkp\AppData\Local\Temp\cc0flgpE.s:611    .text.calibcam:00000000 calibcam
+C:\Users\Darkp\AppData\Local\Temp\cc0flgpE.s:746    .text.calibcam:000000c8 $d
+C:\Users\Darkp\AppData\Local\Temp\cc0flgpE.s:775    .text.calcdirection:00000000 $t
+C:\Users\Darkp\AppData\Local\Temp\cc0flgpE.s:780    .text.calcdirection:00000000 calcdirection
+C:\Users\Darkp\AppData\Local\Temp\cc0flgpE.s:973    .text.calcdirection:00000158 $d
+C:\Users\Darkp\AppData\Local\Temp\cc0flgpE.s:1001   .text.checkforLine:00000000 $t
+C:\Users\Darkp\AppData\Local\Temp\cc0flgpE.s:1006   .text.checkforLine:00000000 checkforLine
+C:\Users\Darkp\AppData\Local\Temp\cc0flgpE.s:1160   .text.checkforLine:000000dc $d
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+LineScanImage0
+showDirection
+calcMotorSpeed
+Qprintf
+SDA_SERIAL_OUTGOING_QUEUE
+__aeabi_i2d
+__aeabi_dmul
+__aeabi_d2iz
+forceAllOff
+__aeabi_i2f
+__aeabi_f2d
+__aeabi_ddiv
+__aeabi_d2f
+__aeabi_fmul
+__aeabi_f2iz
+__aeabi_fadd
+setMotorSpeed
+TFC_Ticker

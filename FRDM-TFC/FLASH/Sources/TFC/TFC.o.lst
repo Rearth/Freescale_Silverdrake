@@ -1,0 +1,190 @@
+   1              		.cpu cortex-m0
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 34, 0
+  11              		.eabi_attribute 18, 4
+  12              		.code	16
+  13              		.file	"TFC.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.comm	motor,4,4
+  18              		.comm	servo,4,4
+  19              		.comm	LEDconfig,4,4
+  20              		.comm	target,4,4
+  21              		.comm	auslmultiplier,4,4
+  22              		.comm	speedMultiplier,4,4
+  23              		.comm	minSpeed,4,4
+  24              		.comm	linetimeout,4,4
+  25              		.comm	ruckwartsZeit,4,4
+  26              		.comm	camData,512,4
+  27              		.comm	active,4,4
+  28              		.comm	Sausl,4,4
+  29              		.comm	linemissing,4,4
+  30              		.comm	checkLineStep,4,4
+  31              		.comm	Motorspeed,4,4
+  32              		.comm	Servoausl,4,4
+  33              		.comm	drivingBack,4,4
+  34              		.section	.text.TFC_Init,"ax",%progbits
+  35              		.align	2
+  36              		.global	TFC_Init
+  37              		.code	16
+  38              		.thumb_func
+  40              	TFC_Init:
+  41              	.LFB0:
+  42              		.file 1 "../Sources/TFC/TFC.c"
+   1:../Sources/TFC/TFC.c **** #include "TFC\TFC.h"
+   2:../Sources/TFC/TFC.c **** 
+   3:../Sources/TFC/TFC.c **** 
+   4:../Sources/TFC/TFC.c **** void TFC_Init()
+   5:../Sources/TFC/TFC.c **** {
+  43              		.loc 1 5 0
+  44              		.cfi_startproc
+  45 0000 80B5     		push	{r7, lr}
+  46              	.LCFI0:
+  47              		.cfi_def_cfa_offset 8
+  48              		.cfi_offset 7, -8
+  49              		.cfi_offset 14, -4
+  50 0002 00AF     		add	r7, sp, #0
+  51              	.LCFI1:
+  52              		.cfi_def_cfa_register 7
+   6:../Sources/TFC/TFC.c **** 	TFC_InitClock();
+  53              		.loc 1 6 0
+  54 0004 FFF7FEFF 		bl	TFC_InitClock
+   7:../Sources/TFC/TFC.c **** 	TFC_InitSysTick();
+  55              		.loc 1 7 0
+  56 0008 FFF7FEFF 		bl	TFC_InitSysTick
+   8:../Sources/TFC/TFC.c **** 	TFC_InitGPIO();
+  57              		.loc 1 8 0
+  58 000c FFF7FEFF 		bl	TFC_InitGPIO
+   9:../Sources/TFC/TFC.c **** 	TFC_InitServos();
+  59              		.loc 1 9 0
+  60 0010 FFF7FEFF 		bl	TFC_InitServos
+  10:../Sources/TFC/TFC.c **** 	TFC_InitMotorPWM();
+  61              		.loc 1 10 0
+  62 0014 FFF7FEFF 		bl	TFC_InitMotorPWM
+  11:../Sources/TFC/TFC.c ****     TFC_InitADCs();
+  63              		.loc 1 11 0
+  64 0018 FFF7FEFF 		bl	TFC_InitADCs
+  12:../Sources/TFC/TFC.c ****     TFC_InitLineScanCamera();
+  65              		.loc 1 12 0
+  66 001c FFF7FEFF 		bl	TFC_InitLineScanCamera
+  13:../Sources/TFC/TFC.c ****     TFC_InitTerminal();
+  67              		.loc 1 13 0
+  68 0020 FFF7FEFF 		bl	TFC_InitTerminal
+  14:../Sources/TFC/TFC.c **** 	TFC_InitUARTs();
+  69              		.loc 1 14 0
+  70 0024 FFF7FEFF 		bl	TFC_InitUARTs
+  15:../Sources/TFC/TFC.c **** 	TFC_HBRIDGE_DISABLE;
+  71              		.loc 1 15 0
+  72 0028 054B     		ldr	r3, .L2
+  73 002a 8022     		mov	r2, #128
+  74 002c 9203     		lsl	r2, r2, #14
+  75 002e 9A60     		str	r2, [r3, #8]
+  16:../Sources/TFC/TFC.c **** 	TFC_SetMotorPWM(0,0);
+  76              		.loc 1 16 0
+  77 0030 0022     		mov	r2, #0
+  78 0032 0023     		mov	r3, #0
+  79 0034 101C     		add	r0, r2, #0
+  80 0036 191C     		add	r1, r3, #0
+  81 0038 FFF7FEFF 		bl	TFC_SetMotorPWM
+  17:../Sources/TFC/TFC.c **** 	
+  18:../Sources/TFC/TFC.c **** }
+  82              		.loc 1 18 0
+  83 003c BD46     		mov	sp, r7
+  84              		@ sp needed for prologue
+  85 003e 80BD     		pop	{r7, pc}
+  86              	.L3:
+  87              		.align	2
+  88              	.L2:
+  89 0040 00F10F40 		.word	1074786560
+  90              		.cfi_endproc
+  91              	.LFE0:
+  93              		.section	.text.TFC_Task,"ax",%progbits
+  94              		.align	2
+  95              		.global	TFC_Task
+  96              		.code	16
+  97              		.thumb_func
+  99              	TFC_Task:
+ 100              	.LFB1:
+  19:../Sources/TFC/TFC.c **** 
+  20:../Sources/TFC/TFC.c **** void TFC_Task()
+  21:../Sources/TFC/TFC.c **** {
+ 101              		.loc 1 21 0
+ 102              		.cfi_startproc
+ 103 0000 80B5     		push	{r7, lr}
+ 104              	.LCFI2:
+ 105              		.cfi_def_cfa_offset 8
+ 106              		.cfi_offset 7, -8
+ 107              		.cfi_offset 14, -4
+ 108 0002 00AF     		add	r7, sp, #0
+ 109              	.LCFI3:
+ 110              		.cfi_def_cfa_register 7
+  22:../Sources/TFC/TFC.c **** 	#if defined(TERMINAL_USE_SDA_SERIAL)
+  23:../Sources/TFC/TFC.c **** 		TFC_UART_Process();
+ 111              		.loc 1 23 0
+ 112 0004 FFF7FEFF 		bl	TFC_UART_Process
+  24:../Sources/TFC/TFC.c **** 	#endif
+  25:../Sources/TFC/TFC.c **** 	 
+  26:../Sources/TFC/TFC.c ****     TFC_ProcessTerminal();
+ 113              		.loc 1 26 0
+ 114 0008 FFF7FEFF 		bl	TFC_ProcessTerminal
+  27:../Sources/TFC/TFC.c **** }
+ 115              		.loc 1 27 0
+ 116 000c BD46     		mov	sp, r7
+ 117              		@ sp needed for prologue
+ 118 000e 80BD     		pop	{r7, pc}
+ 119              		.cfi_endproc
+ 120              	.LFE1:
+ 122              		.text
+ 123              	.Letext0:
+ 124              		.file 2 "D:/NWT/Workplace/FRDM-TFC/Project_Headers/MKL25Z4.h"
+ 125              		.file 3 "D:/Programme/CodeWarrior/CW MCU v10.6.4/MCU/ARM_GCC_Support/ewl/EWL_C/include/cstdint"
+ 126              		.file 4 "D:/NWT/Workplace/FRDM-TFC/Project_Headers/config.h"
+ 127              		.file 5 "D:/NWT/Workplace/FRDM-TFC/Project_Headers/LineScanCam.h"
+ 128              		.file 6 "D:/NWT/Workplace/FRDM-TFC/Project_Headers/motorServo.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 TFC.c
+                            *COM*:00000004 motor
+                            *COM*:00000004 servo
+                            *COM*:00000004 LEDconfig
+                            *COM*:00000004 target
+                            *COM*:00000004 auslmultiplier
+                            *COM*:00000004 speedMultiplier
+                            *COM*:00000004 minSpeed
+                            *COM*:00000004 linetimeout
+                            *COM*:00000004 ruckwartsZeit
+                            *COM*:00000200 camData
+                            *COM*:00000004 active
+                            *COM*:00000004 Sausl
+                            *COM*:00000004 linemissing
+                            *COM*:00000004 checkLineStep
+                            *COM*:00000004 Motorspeed
+                            *COM*:00000004 Servoausl
+                            *COM*:00000004 drivingBack
+C:\Users\Darkp\AppData\Local\Temp\ccyX3afD.s:35     .text.TFC_Init:00000000 $t
+C:\Users\Darkp\AppData\Local\Temp\ccyX3afD.s:40     .text.TFC_Init:00000000 TFC_Init
+C:\Users\Darkp\AppData\Local\Temp\ccyX3afD.s:89     .text.TFC_Init:00000040 $d
+C:\Users\Darkp\AppData\Local\Temp\ccyX3afD.s:94     .text.TFC_Task:00000000 $t
+C:\Users\Darkp\AppData\Local\Temp\ccyX3afD.s:99     .text.TFC_Task:00000000 TFC_Task
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+TFC_InitClock
+TFC_InitSysTick
+TFC_InitGPIO
+TFC_InitServos
+TFC_InitMotorPWM
+TFC_InitADCs
+TFC_InitLineScanCamera
+TFC_InitTerminal
+TFC_InitUARTs
+TFC_SetMotorPWM
+TFC_UART_Process
+TFC_ProcessTerminal

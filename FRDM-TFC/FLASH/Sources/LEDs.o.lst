@@ -1,0 +1,961 @@
+   1              		.cpu cortex-m0
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 34, 0
+  11              		.eabi_attribute 18, 4
+  12              		.code	16
+  13              		.file	"LEDs.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.comm	motor,4,4
+  18              		.comm	servo,4,4
+  19              		.comm	LEDconfig,4,4
+  20              		.comm	target,4,4
+  21              		.comm	auslmultiplier,4,4
+  22              		.comm	speedMultiplier,4,4
+  23              		.comm	minSpeed,4,4
+  24              		.comm	linetimeout,4,4
+  25              		.comm	ruckwartsZeit,4,4
+  26              		.comm	camData,512,4
+  27              		.comm	active,4,4
+  28              		.comm	Sausl,4,4
+  29              		.comm	linemissing,4,4
+  30              		.comm	checkLineStep,4,4
+  31              		.comm	Motorspeed,4,4
+  32              		.comm	Servoausl,4,4
+  33              		.comm	drivingBack,4,4
+  34              		.section	.text.AllLEDsON,"ax",%progbits
+  35              		.align	2
+  36              		.global	AllLEDsON
+  37              		.code	16
+  38              		.thumb_func
+  40              	AllLEDsON:
+  41              	.LFB0:
+  42              		.file 1 "../Sources/LEDs.c"
+   1:../Sources/LEDs.c **** /*
+   2:../Sources/LEDs.c ****  * LEDs.c
+   3:../Sources/LEDs.c ****  *
+   4:../Sources/LEDs.c ****  *  Created on: May 23, 2016
+   5:../Sources/LEDs.c ****  *      Author: Darkp
+   6:../Sources/LEDs.c ****  */
+   7:../Sources/LEDs.c **** #include "TFC\TFC.h"
+   8:../Sources/LEDs.c **** 
+   9:../Sources/LEDs.c **** /* In dieser Class sind alle Methoden enthalten die
+  10:../Sources/LEDs.c ****  * zur ansteuerung der LEds genutzt werden
+  11:../Sources/LEDs.c ****  */
+  12:../Sources/LEDs.c **** 
+  13:../Sources/LEDs.c **** void AllLEDsON() {				//schält alle 4 LEDs an
+  43              		.loc 1 13 0
+  44              		.cfi_startproc
+  45 0000 80B5     		push	{r7, lr}
+  46              	.LCFI0:
+  47              		.cfi_def_cfa_offset 8
+  48              		.cfi_offset 7, -8
+  49              		.cfi_offset 14, -4
+  50 0002 00AF     		add	r7, sp, #0
+  51              	.LCFI1:
+  52              		.cfi_def_cfa_register 7
+  14:../Sources/LEDs.c **** 	
+  15:../Sources/LEDs.c **** 	TFC_BAT_LED0_ON;
+  53              		.loc 1 15 0
+  54 0004 084B     		ldr	r3, .L2
+  55 0006 8022     		mov	r2, #128
+  56 0008 5200     		lsl	r2, r2, #1
+  57 000a 5A60     		str	r2, [r3, #4]
+  16:../Sources/LEDs.c **** 	TFC_BAT_LED1_ON;
+  58              		.loc 1 16 0
+  59 000c 064B     		ldr	r3, .L2
+  60 000e 8022     		mov	r2, #128
+  61 0010 9200     		lsl	r2, r2, #2
+  62 0012 5A60     		str	r2, [r3, #4]
+  17:../Sources/LEDs.c **** 	TFC_BAT_LED2_ON;
+  63              		.loc 1 17 0
+  64 0014 044B     		ldr	r3, .L2
+  65 0016 8022     		mov	r2, #128
+  66 0018 D200     		lsl	r2, r2, #3
+  67 001a 5A60     		str	r2, [r3, #4]
+  18:../Sources/LEDs.c **** 	TFC_BAT_LED3_ON;
+  68              		.loc 1 18 0
+  69 001c 024B     		ldr	r3, .L2
+  70 001e 8022     		mov	r2, #128
+  71 0020 1201     		lsl	r2, r2, #4
+  72 0022 5A60     		str	r2, [r3, #4]
+  19:../Sources/LEDs.c **** 	
+  20:../Sources/LEDs.c **** }
+  73              		.loc 1 20 0
+  74 0024 BD46     		mov	sp, r7
+  75              		@ sp needed for prologue
+  76 0026 80BD     		pop	{r7, pc}
+  77              	.L3:
+  78              		.align	2
+  79              	.L2:
+  80 0028 40F00F40 		.word	1074786368
+  81              		.cfi_endproc
+  82              	.LFE0:
+  84              		.section	.text.AllLEDsOFF,"ax",%progbits
+  85              		.align	2
+  86              		.global	AllLEDsOFF
+  87              		.code	16
+  88              		.thumb_func
+  90              	AllLEDsOFF:
+  91              	.LFB1:
+  21:../Sources/LEDs.c **** 
+  22:../Sources/LEDs.c **** void AllLEDsOFF() {								//schält alle LEDS aus falls in der config class der modus auf die
+  92              		.loc 1 22 0
+  93              		.cfi_startproc
+  94 0000 80B5     		push	{r7, lr}
+  95              	.LCFI2:
+  96              		.cfi_def_cfa_offset 8
+  97              		.cfi_offset 7, -8
+  98              		.cfi_offset 14, -4
+  99 0002 00AF     		add	r7, sp, #0
+ 100              	.LCFI3:
+ 101              		.cfi_def_cfa_register 7
+  23:../Sources/LEDs.c **** 												//geschwindkeitsanzeige gestellt ist
+  24:../Sources/LEDs.c **** 	if (LEDconfig == 0 && active == 1) {
+ 102              		.loc 1 24 0
+ 103 0004 0C4B     		ldr	r3, .L6
+ 104 0006 1B68     		ldr	r3, [r3]
+ 105 0008 002B     		cmp	r3, #0
+ 106 000a 13D1     		bne	.L4
+ 107              		.loc 1 24 0 is_stmt 0
+ 108 000c 0B4B     		ldr	r3, .L6+4
+ 109 000e 1B68     		ldr	r3, [r3]
+ 110 0010 012B     		cmp	r3, #1
+ 111 0012 0FD1     		bne	.L4
+  25:../Sources/LEDs.c **** 		TFC_BAT_LED0_OFF;
+ 112              		.loc 1 25 0 is_stmt 1
+ 113 0014 0A4B     		ldr	r3, .L6+8
+ 114 0016 8022     		mov	r2, #128
+ 115 0018 5200     		lsl	r2, r2, #1
+ 116 001a 9A60     		str	r2, [r3, #8]
+  26:../Sources/LEDs.c **** 		TFC_BAT_LED1_OFF;
+ 117              		.loc 1 26 0
+ 118 001c 084B     		ldr	r3, .L6+8
+ 119 001e 8022     		mov	r2, #128
+ 120 0020 9200     		lsl	r2, r2, #2
+ 121 0022 9A60     		str	r2, [r3, #8]
+  27:../Sources/LEDs.c **** 		TFC_BAT_LED2_OFF;
+ 122              		.loc 1 27 0
+ 123 0024 064B     		ldr	r3, .L6+8
+ 124 0026 8022     		mov	r2, #128
+ 125 0028 D200     		lsl	r2, r2, #3
+ 126 002a 9A60     		str	r2, [r3, #8]
+  28:../Sources/LEDs.c **** 		TFC_BAT_LED3_OFF;
+ 127              		.loc 1 28 0
+ 128 002c 044B     		ldr	r3, .L6+8
+ 129 002e 8022     		mov	r2, #128
+ 130 0030 1201     		lsl	r2, r2, #4
+ 131 0032 9A60     		str	r2, [r3, #8]
+ 132              	.L4:
+  29:../Sources/LEDs.c **** 	}
+  30:../Sources/LEDs.c **** }
+ 133              		.loc 1 30 0
+ 134 0034 BD46     		mov	sp, r7
+ 135              		@ sp needed for prologue
+ 136 0036 80BD     		pop	{r7, pc}
+ 137              	.L7:
+ 138              		.align	2
+ 139              	.L6:
+ 140 0038 00000000 		.word	LEDconfig
+ 141 003c 00000000 		.word	active
+ 142 0040 40F00F40 		.word	1074786368
+ 143              		.cfi_endproc
+ 144              	.LFE1:
+ 146              		.section	.text.forceAllOff,"ax",%progbits
+ 147              		.align	2
+ 148              		.global	forceAllOff
+ 149              		.code	16
+ 150              		.thumb_func
+ 152              	forceAllOff:
+ 153              	.LFB2:
+  31:../Sources/LEDs.c **** void forceAllOff() {							//schält alle LEDs aus
+ 154              		.loc 1 31 0
+ 155              		.cfi_startproc
+ 156 0000 80B5     		push	{r7, lr}
+ 157              	.LCFI4:
+ 158              		.cfi_def_cfa_offset 8
+ 159              		.cfi_offset 7, -8
+ 160              		.cfi_offset 14, -4
+ 161 0002 00AF     		add	r7, sp, #0
+ 162              	.LCFI5:
+ 163              		.cfi_def_cfa_register 7
+  32:../Sources/LEDs.c **** 		
+  33:../Sources/LEDs.c **** 	TFC_BAT_LED0_OFF;
+ 164              		.loc 1 33 0
+ 165 0004 084B     		ldr	r3, .L9
+ 166 0006 8022     		mov	r2, #128
+ 167 0008 5200     		lsl	r2, r2, #1
+ 168 000a 9A60     		str	r2, [r3, #8]
+  34:../Sources/LEDs.c **** 	TFC_BAT_LED1_OFF;
+ 169              		.loc 1 34 0
+ 170 000c 064B     		ldr	r3, .L9
+ 171 000e 8022     		mov	r2, #128
+ 172 0010 9200     		lsl	r2, r2, #2
+ 173 0012 9A60     		str	r2, [r3, #8]
+  35:../Sources/LEDs.c **** 	TFC_BAT_LED2_OFF;
+ 174              		.loc 1 35 0
+ 175 0014 044B     		ldr	r3, .L9
+ 176 0016 8022     		mov	r2, #128
+ 177 0018 D200     		lsl	r2, r2, #3
+ 178 001a 9A60     		str	r2, [r3, #8]
+  36:../Sources/LEDs.c **** 	TFC_BAT_LED3_OFF;
+ 179              		.loc 1 36 0
+ 180 001c 024B     		ldr	r3, .L9
+ 181 001e 8022     		mov	r2, #128
+ 182 0020 1201     		lsl	r2, r2, #4
+ 183 0022 9A60     		str	r2, [r3, #8]
+  37:../Sources/LEDs.c **** }
+ 184              		.loc 1 37 0
+ 185 0024 BD46     		mov	sp, r7
+ 186              		@ sp needed for prologue
+ 187 0026 80BD     		pop	{r7, pc}
+ 188              	.L10:
+ 189              		.align	2
+ 190              	.L9:
+ 191 0028 40F00F40 		.word	1074786368
+ 192              		.cfi_endproc
+ 193              	.LFE2:
+ 195              		.global	curNum
+ 196              		.section	.bss.curNum,"aw",%nobits
+ 197              		.align	2
+ 200              	curNum:
+ 201 0000 00000000 		.space	4
+ 202              		.section	.text.animLEDs,"ax",%progbits
+ 203              		.align	2
+ 204              		.global	animLEDs
+ 205              		.code	16
+ 206              		.thumb_func
+ 208              	animLEDs:
+ 209              	.LFB3:
+  38:../Sources/LEDs.c **** 
+  39:../Sources/LEDs.c **** 
+  40:../Sources/LEDs.c **** int curNum = 0;
+  41:../Sources/LEDs.c **** 
+  42:../Sources/LEDs.c **** void animLEDs() {								//lässt die LEDs animiert blinken, wird aber momentan nicht benutzt
+ 210              		.loc 1 42 0
+ 211              		.cfi_startproc
+ 212 0000 80B5     		push	{r7, lr}
+ 213              	.LCFI6:
+ 214              		.cfi_def_cfa_offset 8
+ 215              		.cfi_offset 7, -8
+ 216              		.cfi_offset 14, -4
+ 217 0002 00AF     		add	r7, sp, #0
+ 218              	.LCFI7:
+ 219              		.cfi_def_cfa_register 7
+  43:../Sources/LEDs.c **** 	
+  44:../Sources/LEDs.c **** 	curNum++;									//erhöht "curNum" (=current Number") um 1, falls diese bei 4 ist wird sie auf 0 
+ 220              		.loc 1 44 0
+ 221 0004 374B     		ldr	r3, .L20
+ 222 0006 1B68     		ldr	r3, [r3]
+ 223 0008 5A1C     		add	r2, r3, #1
+ 224 000a 364B     		ldr	r3, .L20
+ 225 000c 1A60     		str	r2, [r3]
+  45:../Sources/LEDs.c **** 	if (curNum < 4) {
+ 226              		.loc 1 45 0
+ 227 000e 354B     		ldr	r3, .L20
+ 228 0010 1B68     		ldr	r3, [r3]
+ 229 0012 032B     		cmp	r3, #3
+ 230 0014 02DC     		bgt	.L12
+  46:../Sources/LEDs.c **** 		curNum = 0;
+ 231              		.loc 1 46 0
+ 232 0016 334B     		ldr	r3, .L20
+ 233 0018 0022     		mov	r2, #0
+ 234 001a 1A60     		str	r2, [r3]
+ 235              	.L12:
+  47:../Sources/LEDs.c **** 	}
+  48:../Sources/LEDs.c **** 	
+  49:../Sources/LEDs.c **** 	switch (curNum) {							//abhängig von curNum werden unterschiedliche LEDs angeschalten
+ 236              		.loc 1 49 0
+ 237 001c 314B     		ldr	r3, .L20
+ 238 001e 1B68     		ldr	r3, [r3]
+ 239 0020 022B     		cmp	r3, #2
+ 240 0022 29D0     		beq	.L15
+ 241 0024 02DC     		bgt	.L18
+ 242 0026 012B     		cmp	r3, #1
+ 243 0028 15D0     		beq	.L14
+ 244 002a 03E0     		b	.L13
+ 245              	.L18:
+ 246 002c 032B     		cmp	r3, #3
+ 247 002e 34D0     		beq	.L16
+ 248 0030 042B     		cmp	r3, #4
+ 249 0032 43D0     		beq	.L17
+ 250              	.L13:
+  50:../Sources/LEDs.c **** 	default:									//da für curNum immer ein Wert eingetragen ist wird kein default case benötigt
+  51:../Sources/LEDs.c **** 	case 0:
+  52:../Sources/LEDs.c **** 		TFC_BAT_LED0_OFF;
+ 251              		.loc 1 52 0
+ 252 0034 2C4B     		ldr	r3, .L20+4
+ 253 0036 8022     		mov	r2, #128
+ 254 0038 5200     		lsl	r2, r2, #1
+ 255 003a 9A60     		str	r2, [r3, #8]
+  53:../Sources/LEDs.c **** 		TFC_BAT_LED1_OFF;
+ 256              		.loc 1 53 0
+ 257 003c 2A4B     		ldr	r3, .L20+4
+ 258 003e 8022     		mov	r2, #128
+ 259 0040 9200     		lsl	r2, r2, #2
+ 260 0042 9A60     		str	r2, [r3, #8]
+  54:../Sources/LEDs.c **** 		TFC_BAT_LED2_OFF;
+ 261              		.loc 1 54 0
+ 262 0044 284B     		ldr	r3, .L20+4
+ 263 0046 8022     		mov	r2, #128
+ 264 0048 D200     		lsl	r2, r2, #3
+ 265 004a 9A60     		str	r2, [r3, #8]
+  55:../Sources/LEDs.c **** 		TFC_BAT_LED3_OFF;
+ 266              		.loc 1 55 0
+ 267 004c 264B     		ldr	r3, .L20+4
+ 268 004e 8022     		mov	r2, #128
+ 269 0050 1201     		lsl	r2, r2, #4
+ 270 0052 9A60     		str	r2, [r3, #8]
+  56:../Sources/LEDs.c **** 		break;									//break beendet die switch schleife und verhindert dass die anderer fälle ausgefüh
+ 271              		.loc 1 56 0
+ 272 0054 43E0     		b	.L11
+ 273              	.L14:
+  57:../Sources/LEDs.c **** 	case 1:
+  58:../Sources/LEDs.c **** 		TFC_BAT_LED0_ON;
+ 274              		.loc 1 58 0
+ 275 0056 244B     		ldr	r3, .L20+4
+ 276 0058 8022     		mov	r2, #128
+ 277 005a 5200     		lsl	r2, r2, #1
+ 278 005c 5A60     		str	r2, [r3, #4]
+  59:../Sources/LEDs.c **** 		TFC_BAT_LED1_OFF;
+ 279              		.loc 1 59 0
+ 280 005e 224B     		ldr	r3, .L20+4
+ 281 0060 8022     		mov	r2, #128
+ 282 0062 9200     		lsl	r2, r2, #2
+ 283 0064 9A60     		str	r2, [r3, #8]
+  60:../Sources/LEDs.c **** 		TFC_BAT_LED2_OFF;
+ 284              		.loc 1 60 0
+ 285 0066 204B     		ldr	r3, .L20+4
+ 286 0068 8022     		mov	r2, #128
+ 287 006a D200     		lsl	r2, r2, #3
+ 288 006c 9A60     		str	r2, [r3, #8]
+  61:../Sources/LEDs.c **** 		TFC_BAT_LED3_OFF;
+ 289              		.loc 1 61 0
+ 290 006e 1E4B     		ldr	r3, .L20+4
+ 291 0070 8022     		mov	r2, #128
+ 292 0072 1201     		lsl	r2, r2, #4
+ 293 0074 9A60     		str	r2, [r3, #8]
+  62:../Sources/LEDs.c **** 		break;
+ 294              		.loc 1 62 0
+ 295 0076 32E0     		b	.L11
+ 296              	.L15:
+  63:../Sources/LEDs.c **** 	case 2:
+  64:../Sources/LEDs.c **** 		TFC_BAT_LED0_ON;
+ 297              		.loc 1 64 0
+ 298 0078 1B4B     		ldr	r3, .L20+4
+ 299 007a 8022     		mov	r2, #128
+ 300 007c 5200     		lsl	r2, r2, #1
+ 301 007e 5A60     		str	r2, [r3, #4]
+  65:../Sources/LEDs.c **** 		TFC_BAT_LED1_ON;
+ 302              		.loc 1 65 0
+ 303 0080 194B     		ldr	r3, .L20+4
+ 304 0082 8022     		mov	r2, #128
+ 305 0084 9200     		lsl	r2, r2, #2
+ 306 0086 5A60     		str	r2, [r3, #4]
+  66:../Sources/LEDs.c **** 		TFC_BAT_LED2_OFF;
+ 307              		.loc 1 66 0
+ 308 0088 174B     		ldr	r3, .L20+4
+ 309 008a 8022     		mov	r2, #128
+ 310 008c D200     		lsl	r2, r2, #3
+ 311 008e 9A60     		str	r2, [r3, #8]
+  67:../Sources/LEDs.c **** 		TFC_BAT_LED3_OFF;
+ 312              		.loc 1 67 0
+ 313 0090 154B     		ldr	r3, .L20+4
+ 314 0092 8022     		mov	r2, #128
+ 315 0094 1201     		lsl	r2, r2, #4
+ 316 0096 9A60     		str	r2, [r3, #8]
+  68:../Sources/LEDs.c **** 		break;
+ 317              		.loc 1 68 0
+ 318 0098 21E0     		b	.L11
+ 319              	.L16:
+  69:../Sources/LEDs.c **** 	case 3:
+  70:../Sources/LEDs.c **** 		TFC_BAT_LED0_ON;
+ 320              		.loc 1 70 0
+ 321 009a 134B     		ldr	r3, .L20+4
+ 322 009c 8022     		mov	r2, #128
+ 323 009e 5200     		lsl	r2, r2, #1
+ 324 00a0 5A60     		str	r2, [r3, #4]
+  71:../Sources/LEDs.c **** 		TFC_BAT_LED1_ON;
+ 325              		.loc 1 71 0
+ 326 00a2 114B     		ldr	r3, .L20+4
+ 327 00a4 8022     		mov	r2, #128
+ 328 00a6 9200     		lsl	r2, r2, #2
+ 329 00a8 5A60     		str	r2, [r3, #4]
+  72:../Sources/LEDs.c **** 		TFC_BAT_LED2_ON;
+ 330              		.loc 1 72 0
+ 331 00aa 0F4B     		ldr	r3, .L20+4
+ 332 00ac 8022     		mov	r2, #128
+ 333 00ae D200     		lsl	r2, r2, #3
+ 334 00b0 5A60     		str	r2, [r3, #4]
+  73:../Sources/LEDs.c **** 		TFC_BAT_LED3_OFF;
+ 335              		.loc 1 73 0
+ 336 00b2 0D4B     		ldr	r3, .L20+4
+ 337 00b4 8022     		mov	r2, #128
+ 338 00b6 1201     		lsl	r2, r2, #4
+ 339 00b8 9A60     		str	r2, [r3, #8]
+  74:../Sources/LEDs.c **** 		break;
+ 340              		.loc 1 74 0
+ 341 00ba 10E0     		b	.L11
+ 342              	.L17:
+  75:../Sources/LEDs.c **** 	case 4:
+  76:../Sources/LEDs.c **** 		TFC_BAT_LED0_ON;
+ 343              		.loc 1 76 0
+ 344 00bc 0A4B     		ldr	r3, .L20+4
+ 345 00be 8022     		mov	r2, #128
+ 346 00c0 5200     		lsl	r2, r2, #1
+ 347 00c2 5A60     		str	r2, [r3, #4]
+  77:../Sources/LEDs.c **** 		TFC_BAT_LED1_ON;
+ 348              		.loc 1 77 0
+ 349 00c4 084B     		ldr	r3, .L20+4
+ 350 00c6 8022     		mov	r2, #128
+ 351 00c8 9200     		lsl	r2, r2, #2
+ 352 00ca 5A60     		str	r2, [r3, #4]
+  78:../Sources/LEDs.c **** 		TFC_BAT_LED2_ON;
+ 353              		.loc 1 78 0
+ 354 00cc 064B     		ldr	r3, .L20+4
+ 355 00ce 8022     		mov	r2, #128
+ 356 00d0 D200     		lsl	r2, r2, #3
+ 357 00d2 5A60     		str	r2, [r3, #4]
+  79:../Sources/LEDs.c **** 		TFC_BAT_LED3_ON;
+ 358              		.loc 1 79 0
+ 359 00d4 044B     		ldr	r3, .L20+4
+ 360 00d6 8022     		mov	r2, #128
+ 361 00d8 1201     		lsl	r2, r2, #4
+ 362 00da 5A60     		str	r2, [r3, #4]
+  80:../Sources/LEDs.c **** 		break;
+ 363              		.loc 1 80 0
+ 364 00dc C046     		mov	r8, r8
+ 365              	.L11:
+  81:../Sources/LEDs.c **** 	}
+  82:../Sources/LEDs.c **** 	
+  83:../Sources/LEDs.c **** }
+ 366              		.loc 1 83 0
+ 367 00de BD46     		mov	sp, r7
+ 368              		@ sp needed for prologue
+ 369 00e0 80BD     		pop	{r7, pc}
+ 370              	.L21:
+ 371 00e2 C046     		.align	2
+ 372              	.L20:
+ 373 00e4 00000000 		.word	curNum
+ 374 00e8 40F00F40 		.word	1074786368
+ 375              		.cfi_endproc
+ 376              	.LFE3:
+ 378              		.global	__aeabi_fcmplt
+ 379              		.global	__aeabi_f2d
+ 380              		.global	__aeabi_dcmpgt
+ 381              		.global	__aeabi_fcmpgt
+ 382              		.section	.text.LEDs_speedIndic,"ax",%progbits
+ 383              		.align	2
+ 384              		.global	LEDs_speedIndic
+ 385              		.code	16
+ 386              		.thumb_func
+ 388              	LEDs_speedIndic:
+ 389              	.LFB4:
+  84:../Sources/LEDs.c **** 
+  85:../Sources/LEDs.c **** void LEDs_speedIndic (float speed) {			//geschwindkeitsanzeige mithilfe der LEDs
+ 390              		.loc 1 85 0
+ 391              		.cfi_startproc
+ 392 0000 90B5     		push	{r4, r7, lr}
+ 393              	.LCFI8:
+ 394              		.cfi_def_cfa_offset 12
+ 395              		.cfi_offset 4, -12
+ 396              		.cfi_offset 7, -8
+ 397              		.cfi_offset 14, -4
+ 398 0002 83B0     		sub	sp, sp, #12
+ 399              	.LCFI9:
+ 400              		.cfi_def_cfa_offset 24
+ 401 0004 00AF     		add	r7, sp, #0
+ 402              	.LCFI10:
+ 403              		.cfi_def_cfa_register 7
+ 404 0006 7860     		str	r0, [r7, #4]
+  86:../Sources/LEDs.c **** 	
+  87:../Sources/LEDs.c **** 	if (LEDconfig == 0 && active == 1) {		//wird nur ausgeführt wenn die variable in der config class
+ 405              		.loc 1 87 0
+ 406 0008 534B     		ldr	r3, .L40+24
+ 407 000a 1B68     		ldr	r3, [r3]
+ 408 000c 002B     		cmp	r3, #0
+ 409 000e 00D0     		beq	.LCB315
+ 410 0010 93E0     		b	.L22	@long jump
+ 411              	.LCB315:
+ 412              		.loc 1 87 0 is_stmt 0
+ 413 0012 524B     		ldr	r3, .L40+28
+ 414 0014 1B68     		ldr	r3, [r3]
+ 415 0016 012B     		cmp	r3, #1
+ 416 0018 00D0     		beq	.LCB319
+ 417 001a 8EE0     		b	.L22	@long jump
+ 418              	.LCB319:
+  88:../Sources/LEDs.c **** 		 	 	 	 	 	 	 	 	 	 	//entsprechend bestimmt ist
+  89:../Sources/LEDs.c **** 		if (speed < 0) {						//verhindert dass mit negativen Werten gerechnet ist (beim rückwartsfahren)
+ 419              		.loc 1 89 0 is_stmt 1
+ 420 001c 7868     		ldr	r0, [r7, #4]
+ 421 001e 0021     		mov	r1, #0
+ 422 0020 FFF7FEFF 		bl	__aeabi_fcmplt
+ 423 0024 031C     		mov	r3, r0
+ 424 0026 002B     		cmp	r3, #0
+ 425 0028 04D0     		beq	.L24
+ 426              	.L34:
+  90:../Sources/LEDs.c **** 			speed = speed * (-1);
+ 427              		.loc 1 90 0
+ 428 002a 7B68     		ldr	r3, [r7, #4]
+ 429 002c 8022     		mov	r2, #128
+ 430 002e 1206     		lsl	r2, r2, #24
+ 431 0030 5340     		eor	r3, r2
+ 432 0032 7B60     		str	r3, [r7, #4]
+ 433              	.L24:
+  91:../Sources/LEDs.c **** 		}
+  92:../Sources/LEDs.c **** 		
+  93:../Sources/LEDs.c **** 		if (speed > 0.15) {						//hier werden verschiedene LEDs je nach geschwindkeit
+ 434              		.loc 1 93 0
+ 435 0034 7868     		ldr	r0, [r7, #4]
+ 436 0036 FFF7FEFF 		bl	__aeabi_f2d
+ 437 003a 031C     		mov	r3, r0
+ 438 003c 0C1C     		mov	r4, r1
+ 439 003e 181C     		mov	r0, r3
+ 440 0040 211C     		mov	r1, r4
+ 441 0042 404B     		ldr	r3, .L40+4
+ 442 0044 3E4A     		ldr	r2, .L40
+ 443 0046 FFF7FEFF 		bl	__aeabi_dcmpgt
+ 444 004a 031C     		mov	r3, r0
+ 445 004c 002B     		cmp	r3, #0
+ 446 004e 10D0     		beq	.L39
+ 447              	.L35:
+  94:../Sources/LEDs.c **** 			TFC_BAT_LED0_ON;					//angeschalten
+ 448              		.loc 1 94 0
+ 449 0050 434B     		ldr	r3, .L40+32
+ 450 0052 8022     		mov	r2, #128
+ 451 0054 5200     		lsl	r2, r2, #1
+ 452 0056 5A60     		str	r2, [r3, #4]
+  95:../Sources/LEDs.c **** 			TFC_BAT_LED1_OFF;
+ 453              		.loc 1 95 0
+ 454 0058 414B     		ldr	r3, .L40+32
+ 455 005a 8022     		mov	r2, #128
+ 456 005c 9200     		lsl	r2, r2, #2
+ 457 005e 9A60     		str	r2, [r3, #8]
+  96:../Sources/LEDs.c **** 			TFC_BAT_LED2_OFF;
+ 458              		.loc 1 96 0
+ 459 0060 3F4B     		ldr	r3, .L40+32
+ 460 0062 8022     		mov	r2, #128
+ 461 0064 D200     		lsl	r2, r2, #3
+ 462 0066 9A60     		str	r2, [r3, #8]
+  97:../Sources/LEDs.c **** 			TFC_BAT_LED3_OFF;
+ 463              		.loc 1 97 0
+ 464 0068 3D4B     		ldr	r3, .L40+32
+ 465 006a 8022     		mov	r2, #128
+ 466 006c 1201     		lsl	r2, r2, #4
+ 467 006e 9A60     		str	r2, [r3, #8]
+ 468 0070 0FE0     		b	.L28
+ 469              	.L39:
+  98:../Sources/LEDs.c **** 		} else {
+  99:../Sources/LEDs.c **** 			TFC_BAT_LED0_OFF;
+ 470              		.loc 1 99 0
+ 471 0072 3B4B     		ldr	r3, .L40+32
+ 472 0074 8022     		mov	r2, #128
+ 473 0076 5200     		lsl	r2, r2, #1
+ 474 0078 9A60     		str	r2, [r3, #8]
+ 100:../Sources/LEDs.c **** 			TFC_BAT_LED1_OFF;
+ 475              		.loc 1 100 0
+ 476 007a 394B     		ldr	r3, .L40+32
+ 477 007c 8022     		mov	r2, #128
+ 478 007e 9200     		lsl	r2, r2, #2
+ 479 0080 9A60     		str	r2, [r3, #8]
+ 101:../Sources/LEDs.c **** 			TFC_BAT_LED2_OFF;
+ 480              		.loc 1 101 0
+ 481 0082 374B     		ldr	r3, .L40+32
+ 482 0084 8022     		mov	r2, #128
+ 483 0086 D200     		lsl	r2, r2, #3
+ 484 0088 9A60     		str	r2, [r3, #8]
+ 102:../Sources/LEDs.c **** 			TFC_BAT_LED3_OFF;		
+ 485              		.loc 1 102 0
+ 486 008a 354B     		ldr	r3, .L40+32
+ 487 008c 8022     		mov	r2, #128
+ 488 008e 1201     		lsl	r2, r2, #4
+ 489 0090 9A60     		str	r2, [r3, #8]
+ 490              	.L28:
+ 103:../Sources/LEDs.c **** 		}
+ 104:../Sources/LEDs.c **** 		if (speed > 0.28) {
+ 491              		.loc 1 104 0
+ 492 0092 7868     		ldr	r0, [r7, #4]
+ 493 0094 FFF7FEFF 		bl	__aeabi_f2d
+ 494 0098 031C     		mov	r3, r0
+ 495 009a 0C1C     		mov	r4, r1
+ 496 009c 181C     		mov	r0, r3
+ 497 009e 211C     		mov	r1, r4
+ 498 00a0 294A     		ldr	r2, .L40+8
+ 499 00a2 2A4B     		ldr	r3, .L40+12
+ 500 00a4 FFF7FEFF 		bl	__aeabi_dcmpgt
+ 501 00a8 031C     		mov	r3, r0
+ 502 00aa 002B     		cmp	r3, #0
+ 503 00ac 0FD0     		beq	.L29
+ 504              	.L36:
+ 105:../Sources/LEDs.c **** 			TFC_BAT_LED0_ON;
+ 505              		.loc 1 105 0
+ 506 00ae 2C4B     		ldr	r3, .L40+32
+ 507 00b0 8022     		mov	r2, #128
+ 508 00b2 5200     		lsl	r2, r2, #1
+ 509 00b4 5A60     		str	r2, [r3, #4]
+ 106:../Sources/LEDs.c **** 			TFC_BAT_LED1_ON;
+ 510              		.loc 1 106 0
+ 511 00b6 2A4B     		ldr	r3, .L40+32
+ 512 00b8 8022     		mov	r2, #128
+ 513 00ba 9200     		lsl	r2, r2, #2
+ 514 00bc 5A60     		str	r2, [r3, #4]
+ 107:../Sources/LEDs.c **** 			TFC_BAT_LED2_OFF;
+ 515              		.loc 1 107 0
+ 516 00be 284B     		ldr	r3, .L40+32
+ 517 00c0 8022     		mov	r2, #128
+ 518 00c2 D200     		lsl	r2, r2, #3
+ 519 00c4 9A60     		str	r2, [r3, #8]
+ 108:../Sources/LEDs.c **** 			TFC_BAT_LED3_OFF;
+ 520              		.loc 1 108 0
+ 521 00c6 264B     		ldr	r3, .L40+32
+ 522 00c8 8022     		mov	r2, #128
+ 523 00ca 1201     		lsl	r2, r2, #4
+ 524 00cc 9A60     		str	r2, [r3, #8]
+ 525              	.L29:
+ 109:../Sources/LEDs.c **** 		}
+ 110:../Sources/LEDs.c **** 		if (speed > 0.38) {
+ 526              		.loc 1 110 0
+ 527 00ce 7868     		ldr	r0, [r7, #4]
+ 528 00d0 FFF7FEFF 		bl	__aeabi_f2d
+ 529 00d4 031C     		mov	r3, r0
+ 530 00d6 0C1C     		mov	r4, r1
+ 531 00d8 181C     		mov	r0, r3
+ 532 00da 211C     		mov	r1, r4
+ 533 00dc 1C4A     		ldr	r2, .L40+16
+ 534 00de 1D4B     		ldr	r3, .L40+20
+ 535 00e0 FFF7FEFF 		bl	__aeabi_dcmpgt
+ 536 00e4 031C     		mov	r3, r0
+ 537 00e6 002B     		cmp	r3, #0
+ 538 00e8 0FD0     		beq	.L31
+ 539              	.L37:
+ 111:../Sources/LEDs.c **** 			TFC_BAT_LED0_ON;
+ 540              		.loc 1 111 0
+ 541 00ea 1D4B     		ldr	r3, .L40+32
+ 542 00ec 8022     		mov	r2, #128
+ 543 00ee 5200     		lsl	r2, r2, #1
+ 544 00f0 5A60     		str	r2, [r3, #4]
+ 112:../Sources/LEDs.c **** 			TFC_BAT_LED1_ON;
+ 545              		.loc 1 112 0
+ 546 00f2 1B4B     		ldr	r3, .L40+32
+ 547 00f4 8022     		mov	r2, #128
+ 548 00f6 9200     		lsl	r2, r2, #2
+ 549 00f8 5A60     		str	r2, [r3, #4]
+ 113:../Sources/LEDs.c **** 			TFC_BAT_LED2_ON;
+ 550              		.loc 1 113 0
+ 551 00fa 194B     		ldr	r3, .L40+32
+ 552 00fc 8022     		mov	r2, #128
+ 553 00fe D200     		lsl	r2, r2, #3
+ 554 0100 5A60     		str	r2, [r3, #4]
+ 114:../Sources/LEDs.c **** 			TFC_BAT_LED3_OFF;
+ 555              		.loc 1 114 0
+ 556 0102 174B     		ldr	r3, .L40+32
+ 557 0104 8022     		mov	r2, #128
+ 558 0106 1201     		lsl	r2, r2, #4
+ 559 0108 9A60     		str	r2, [r3, #8]
+ 560              	.L31:
+ 115:../Sources/LEDs.c **** 		}
+ 116:../Sources/LEDs.c **** 		if (speed > 0.5) {
+ 561              		.loc 1 116 0
+ 562 010a 7868     		ldr	r0, [r7, #4]
+ 563 010c FC21     		mov	r1, #252
+ 564 010e 8905     		lsl	r1, r1, #22
+ 565 0110 FFF7FEFF 		bl	__aeabi_fcmpgt
+ 566 0114 031C     		mov	r3, r0
+ 567 0116 002B     		cmp	r3, #0
+ 568 0118 0FD0     		beq	.L22
+ 569              	.L38:
+ 117:../Sources/LEDs.c **** 			TFC_BAT_LED0_ON;
+ 570              		.loc 1 117 0
+ 571 011a 114B     		ldr	r3, .L40+32
+ 572 011c 8022     		mov	r2, #128
+ 573 011e 5200     		lsl	r2, r2, #1
+ 574 0120 5A60     		str	r2, [r3, #4]
+ 118:../Sources/LEDs.c **** 			TFC_BAT_LED1_ON;
+ 575              		.loc 1 118 0
+ 576 0122 0F4B     		ldr	r3, .L40+32
+ 577 0124 8022     		mov	r2, #128
+ 578 0126 9200     		lsl	r2, r2, #2
+ 579 0128 5A60     		str	r2, [r3, #4]
+ 119:../Sources/LEDs.c **** 			TFC_BAT_LED2_ON;
+ 580              		.loc 1 119 0
+ 581 012a 0D4B     		ldr	r3, .L40+32
+ 582 012c 8022     		mov	r2, #128
+ 583 012e D200     		lsl	r2, r2, #3
+ 584 0130 5A60     		str	r2, [r3, #4]
+ 120:../Sources/LEDs.c **** 			TFC_BAT_LED3_ON;
+ 585              		.loc 1 120 0
+ 586 0132 0B4B     		ldr	r3, .L40+32
+ 587 0134 8022     		mov	r2, #128
+ 588 0136 1201     		lsl	r2, r2, #4
+ 589 0138 5A60     		str	r2, [r3, #4]
+ 590              	.L22:
+ 121:../Sources/LEDs.c **** 		}
+ 122:../Sources/LEDs.c **** 	}
+ 123:../Sources/LEDs.c **** 	
+ 124:../Sources/LEDs.c **** }
+ 591              		.loc 1 124 0
+ 592 013a BD46     		mov	sp, r7
+ 593 013c 03B0     		add	sp, sp, #12
+ 594              		@ sp needed for prologue
+ 595 013e 90BD     		pop	{r4, r7, pc}
+ 596              	.L41:
+ 597              		.align	3
+ 598              	.L40:
+ 599 0140 33333333 		.word	858993459
+ 600 0144 3333C33F 		.word	1069757235
+ 601 0148 EC51B81E 		.word	515396076
+ 602 014c 85EBD13F 		.word	1070721925
+ 603 0150 52B81E85 		.word	-2061584302
+ 604 0154 EB51D83F 		.word	1071141355
+ 605 0158 00000000 		.word	LEDconfig
+ 606 015c 00000000 		.word	active
+ 607 0160 40F00F40 		.word	1074786368
+ 608              		.cfi_endproc
+ 609              	.LFE4:
+ 611              		.section	.text.showDirection,"ax",%progbits
+ 612              		.align	2
+ 613              		.global	showDirection
+ 614              		.code	16
+ 615              		.thumb_func
+ 617              	showDirection:
+ 618              	.LFB5:
+ 125:../Sources/LEDs.c **** 
+ 126:../Sources/LEDs.c **** void showDirection (int num) {					//Methode zur richtungsanzeige mithilfe der LEDS
+ 619              		.loc 1 126 0
+ 620              		.cfi_startproc
+ 621 0000 80B5     		push	{r7, lr}
+ 622              	.LCFI11:
+ 623              		.cfi_def_cfa_offset 8
+ 624              		.cfi_offset 7, -8
+ 625              		.cfi_offset 14, -4
+ 626 0002 82B0     		sub	sp, sp, #8
+ 627              	.LCFI12:
+ 628              		.cfi_def_cfa_offset 16
+ 629 0004 00AF     		add	r7, sp, #0
+ 630              	.LCFI13:
+ 631              		.cfi_def_cfa_register 7
+ 632 0006 7860     		str	r0, [r7, #4]
+ 127:../Sources/LEDs.c **** 	
+ 128:../Sources/LEDs.c **** 	if (LEDconfig == 1 && active == 1) {		//wird nur ausgeführt wenn die LEDconfiguration entsprechent
+ 633              		.loc 1 128 0
+ 634 0008 2C4B     		ldr	r3, .L49
+ 635 000a 1B68     		ldr	r3, [r3]
+ 636 000c 012B     		cmp	r3, #1
+ 637 000e 52D1     		bne	.L42
+ 638              		.loc 1 128 0 is_stmt 0
+ 639 0010 2B4B     		ldr	r3, .L49+4
+ 640 0012 1B68     		ldr	r3, [r3]
+ 641 0014 012B     		cmp	r3, #1
+ 642 0016 4ED1     		bne	.L42
+ 129:../Sources/LEDs.c **** 		
+ 130:../Sources/LEDs.c **** 		switch(num) {							//je nach richtungswert wird eine andere LED aktiviert
+ 643              		.loc 1 130 0 is_stmt 1
+ 644 0018 7B68     		ldr	r3, [r7, #4]
+ 645 001a 022B     		cmp	r3, #2
+ 646 001c 29D0     		beq	.L45
+ 647 001e 02DC     		bgt	.L48
+ 648 0020 012B     		cmp	r3, #1
+ 649 0022 37D0     		beq	.L44
+ 650 0024 47E0     		b	.L42
+ 651              	.L48:
+ 652 0026 032B     		cmp	r3, #3
+ 653 0028 12D0     		beq	.L46
+ 654 002a 042B     		cmp	r3, #4
+ 655 002c 43D1     		bne	.L42
+ 656              	.L47:
+ 131:../Sources/LEDs.c **** 			case 4:
+ 132:../Sources/LEDs.c **** 				TFC_BAT_LED0_ON;
+ 657              		.loc 1 132 0
+ 658 002e 254B     		ldr	r3, .L49+8
+ 659 0030 8022     		mov	r2, #128
+ 660 0032 5200     		lsl	r2, r2, #1
+ 661 0034 5A60     		str	r2, [r3, #4]
+ 133:../Sources/LEDs.c **** 				TFC_BAT_LED1_OFF;
+ 662              		.loc 1 133 0
+ 663 0036 234B     		ldr	r3, .L49+8
+ 664 0038 8022     		mov	r2, #128
+ 665 003a 9200     		lsl	r2, r2, #2
+ 666 003c 9A60     		str	r2, [r3, #8]
+ 134:../Sources/LEDs.c **** 				TFC_BAT_LED2_OFF;
+ 667              		.loc 1 134 0
+ 668 003e 214B     		ldr	r3, .L49+8
+ 669 0040 8022     		mov	r2, #128
+ 670 0042 D200     		lsl	r2, r2, #3
+ 671 0044 9A60     		str	r2, [r3, #8]
+ 135:../Sources/LEDs.c **** 				TFC_BAT_LED3_OFF;
+ 672              		.loc 1 135 0
+ 673 0046 1F4B     		ldr	r3, .L49+8
+ 674 0048 8022     		mov	r2, #128
+ 675 004a 1201     		lsl	r2, r2, #4
+ 676 004c 9A60     		str	r2, [r3, #8]
+ 136:../Sources/LEDs.c **** 				break;
+ 677              		.loc 1 136 0
+ 678 004e 32E0     		b	.L42
+ 679              	.L46:
+ 137:../Sources/LEDs.c **** 			case 3:
+ 138:../Sources/LEDs.c **** 				TFC_BAT_LED0_OFF;
+ 680              		.loc 1 138 0
+ 681 0050 1C4B     		ldr	r3, .L49+8
+ 682 0052 8022     		mov	r2, #128
+ 683 0054 5200     		lsl	r2, r2, #1
+ 684 0056 9A60     		str	r2, [r3, #8]
+ 139:../Sources/LEDs.c **** 				TFC_BAT_LED1_ON;
+ 685              		.loc 1 139 0
+ 686 0058 1A4B     		ldr	r3, .L49+8
+ 687 005a 8022     		mov	r2, #128
+ 688 005c 9200     		lsl	r2, r2, #2
+ 689 005e 5A60     		str	r2, [r3, #4]
+ 140:../Sources/LEDs.c **** 				TFC_BAT_LED2_OFF;
+ 690              		.loc 1 140 0
+ 691 0060 184B     		ldr	r3, .L49+8
+ 692 0062 8022     		mov	r2, #128
+ 693 0064 D200     		lsl	r2, r2, #3
+ 694 0066 9A60     		str	r2, [r3, #8]
+ 141:../Sources/LEDs.c **** 				TFC_BAT_LED3_OFF;
+ 695              		.loc 1 141 0
+ 696 0068 164B     		ldr	r3, .L49+8
+ 697 006a 8022     		mov	r2, #128
+ 698 006c 1201     		lsl	r2, r2, #4
+ 699 006e 9A60     		str	r2, [r3, #8]
+ 142:../Sources/LEDs.c **** 				break;
+ 700              		.loc 1 142 0
+ 701 0070 21E0     		b	.L42
+ 702              	.L45:
+ 143:../Sources/LEDs.c **** 			case 2:
+ 144:../Sources/LEDs.c **** 				TFC_BAT_LED0_OFF;
+ 703              		.loc 1 144 0
+ 704 0072 144B     		ldr	r3, .L49+8
+ 705 0074 8022     		mov	r2, #128
+ 706 0076 5200     		lsl	r2, r2, #1
+ 707 0078 9A60     		str	r2, [r3, #8]
+ 145:../Sources/LEDs.c **** 				TFC_BAT_LED1_OFF;
+ 708              		.loc 1 145 0
+ 709 007a 124B     		ldr	r3, .L49+8
+ 710 007c 8022     		mov	r2, #128
+ 711 007e 9200     		lsl	r2, r2, #2
+ 712 0080 9A60     		str	r2, [r3, #8]
+ 146:../Sources/LEDs.c **** 				TFC_BAT_LED2_ON;
+ 713              		.loc 1 146 0
+ 714 0082 104B     		ldr	r3, .L49+8
+ 715 0084 8022     		mov	r2, #128
+ 716 0086 D200     		lsl	r2, r2, #3
+ 717 0088 5A60     		str	r2, [r3, #4]
+ 147:../Sources/LEDs.c **** 				TFC_BAT_LED3_OFF;
+ 718              		.loc 1 147 0
+ 719 008a 0E4B     		ldr	r3, .L49+8
+ 720 008c 8022     		mov	r2, #128
+ 721 008e 1201     		lsl	r2, r2, #4
+ 722 0090 9A60     		str	r2, [r3, #8]
+ 148:../Sources/LEDs.c **** 				break;
+ 723              		.loc 1 148 0
+ 724 0092 10E0     		b	.L42
+ 725              	.L44:
+ 149:../Sources/LEDs.c **** 			case 1:
+ 150:../Sources/LEDs.c **** 				TFC_BAT_LED0_OFF;
+ 726              		.loc 1 150 0
+ 727 0094 0B4B     		ldr	r3, .L49+8
+ 728 0096 8022     		mov	r2, #128
+ 729 0098 5200     		lsl	r2, r2, #1
+ 730 009a 9A60     		str	r2, [r3, #8]
+ 151:../Sources/LEDs.c **** 				TFC_BAT_LED1_OFF;
+ 731              		.loc 1 151 0
+ 732 009c 094B     		ldr	r3, .L49+8
+ 733 009e 8022     		mov	r2, #128
+ 734 00a0 9200     		lsl	r2, r2, #2
+ 735 00a2 9A60     		str	r2, [r3, #8]
+ 152:../Sources/LEDs.c **** 				TFC_BAT_LED2_OFF;
+ 736              		.loc 1 152 0
+ 737 00a4 074B     		ldr	r3, .L49+8
+ 738 00a6 8022     		mov	r2, #128
+ 739 00a8 D200     		lsl	r2, r2, #3
+ 740 00aa 9A60     		str	r2, [r3, #8]
+ 153:../Sources/LEDs.c **** 				TFC_BAT_LED3_ON;
+ 741              		.loc 1 153 0
+ 742 00ac 054B     		ldr	r3, .L49+8
+ 743 00ae 8022     		mov	r2, #128
+ 744 00b0 1201     		lsl	r2, r2, #4
+ 745 00b2 5A60     		str	r2, [r3, #4]
+ 154:../Sources/LEDs.c **** 				break;
+ 746              		.loc 1 154 0
+ 747 00b4 C046     		mov	r8, r8
+ 748              	.L42:
+ 155:../Sources/LEDs.c **** 				
+ 156:../Sources/LEDs.c **** 		}
+ 157:../Sources/LEDs.c **** 	}
+ 158:../Sources/LEDs.c **** 	
+ 159:../Sources/LEDs.c **** }
+ 749              		.loc 1 159 0
+ 750 00b6 BD46     		mov	sp, r7
+ 751 00b8 02B0     		add	sp, sp, #8
+ 752              		@ sp needed for prologue
+ 753 00ba 80BD     		pop	{r7, pc}
+ 754              	.L50:
+ 755              		.align	2
+ 756              	.L49:
+ 757 00bc 00000000 		.word	LEDconfig
+ 758 00c0 00000000 		.word	active
+ 759 00c4 40F00F40 		.word	1074786368
+ 760              		.cfi_endproc
+ 761              	.LFE5:
+ 763              		.text
+ 764              	.Letext0:
+ 765              		.file 2 "D:/NWT/Workplace/FRDM-TFC/Project_Headers/MKL25Z4.h"
+ 766              		.file 3 "D:/Programme/CodeWarrior/CW MCU v10.6.4/MCU/ARM_GCC_Support/ewl/EWL_C/include/cstdint"
+ 767              		.file 4 "D:/NWT/Workplace/FRDM-TFC/Project_Headers/config.h"
+ 768              		.file 5 "D:/NWT/Workplace/FRDM-TFC/Project_Headers/LineScanCam.h"
+ 769              		.file 6 "D:/NWT/Workplace/FRDM-TFC/Project_Headers/motorServo.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 LEDs.c
+                            *COM*:00000004 motor
+                            *COM*:00000004 servo
+                            *COM*:00000004 LEDconfig
+                            *COM*:00000004 target
+                            *COM*:00000004 auslmultiplier
+                            *COM*:00000004 speedMultiplier
+                            *COM*:00000004 minSpeed
+                            *COM*:00000004 linetimeout
+                            *COM*:00000004 ruckwartsZeit
+                            *COM*:00000200 camData
+                            *COM*:00000004 active
+                            *COM*:00000004 Sausl
+                            *COM*:00000004 linemissing
+                            *COM*:00000004 checkLineStep
+                            *COM*:00000004 Motorspeed
+                            *COM*:00000004 Servoausl
+                            *COM*:00000004 drivingBack
+C:\Users\Darkp\AppData\Local\Temp\ccSxiRBD.s:35     .text.AllLEDsON:00000000 $t
+C:\Users\Darkp\AppData\Local\Temp\ccSxiRBD.s:40     .text.AllLEDsON:00000000 AllLEDsON
+C:\Users\Darkp\AppData\Local\Temp\ccSxiRBD.s:80     .text.AllLEDsON:00000028 $d
+C:\Users\Darkp\AppData\Local\Temp\ccSxiRBD.s:85     .text.AllLEDsOFF:00000000 $t
+C:\Users\Darkp\AppData\Local\Temp\ccSxiRBD.s:90     .text.AllLEDsOFF:00000000 AllLEDsOFF
+C:\Users\Darkp\AppData\Local\Temp\ccSxiRBD.s:140    .text.AllLEDsOFF:00000038 $d
+C:\Users\Darkp\AppData\Local\Temp\ccSxiRBD.s:147    .text.forceAllOff:00000000 $t
+C:\Users\Darkp\AppData\Local\Temp\ccSxiRBD.s:152    .text.forceAllOff:00000000 forceAllOff
+C:\Users\Darkp\AppData\Local\Temp\ccSxiRBD.s:191    .text.forceAllOff:00000028 $d
+C:\Users\Darkp\AppData\Local\Temp\ccSxiRBD.s:200    .bss.curNum:00000000 curNum
+C:\Users\Darkp\AppData\Local\Temp\ccSxiRBD.s:197    .bss.curNum:00000000 $d
+C:\Users\Darkp\AppData\Local\Temp\ccSxiRBD.s:203    .text.animLEDs:00000000 $t
+C:\Users\Darkp\AppData\Local\Temp\ccSxiRBD.s:208    .text.animLEDs:00000000 animLEDs
+C:\Users\Darkp\AppData\Local\Temp\ccSxiRBD.s:373    .text.animLEDs:000000e4 $d
+C:\Users\Darkp\AppData\Local\Temp\ccSxiRBD.s:383    .text.LEDs_speedIndic:00000000 $t
+C:\Users\Darkp\AppData\Local\Temp\ccSxiRBD.s:388    .text.LEDs_speedIndic:00000000 LEDs_speedIndic
+C:\Users\Darkp\AppData\Local\Temp\ccSxiRBD.s:599    .text.LEDs_speedIndic:00000140 $d
+C:\Users\Darkp\AppData\Local\Temp\ccSxiRBD.s:612    .text.showDirection:00000000 $t
+C:\Users\Darkp\AppData\Local\Temp\ccSxiRBD.s:617    .text.showDirection:00000000 showDirection
+C:\Users\Darkp\AppData\Local\Temp\ccSxiRBD.s:757    .text.showDirection:000000bc $d
+                     .debug_frame:00000010 $d
+C:\Users\Darkp\AppData\Local\Temp\ccSxiRBD.s:14920  .text.LEDs_speedIndic:00000164 $t
+
+UNDEFINED SYMBOLS
+__aeabi_fcmplt
+__aeabi_f2d
+__aeabi_dcmpgt
+__aeabi_fcmpgt

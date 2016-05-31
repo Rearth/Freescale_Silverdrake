@@ -1,0 +1,104 @@
+   1              		.cpu cortex-m0
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 34, 0
+  11              		.eabi_attribute 18, 4
+  12              		.code	16
+  13              		.file	"config.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.global	motor
+  18              		.section	.rodata.motor,"a",%progbits
+  19              		.align	2
+  22              	motor:
+  23 0000 01000000 		.word	1
+  24              		.global	servo
+  25              		.section	.rodata.servo,"a",%progbits
+  26              		.align	2
+  29              	servo:
+  30 0000 00000000 		.space	4
+  31              		.global	LEDconfig
+  32              		.section	.rodata.LEDconfig,"a",%progbits
+  33              		.align	2
+  36              	LEDconfig:
+  37 0000 00000000 		.space	4
+  38              		.global	target
+  39              		.section	.rodata.target,"a",%progbits
+  40              		.align	2
+  43              	target:
+  44 0000 88130000 		.word	5000
+  45              		.global	auslmultiplier
+  46              		.section	.rodata.auslmultiplier,"a",%progbits
+  47              		.align	2
+  50              	auslmultiplier:
+  51 0000 0000803F 		.word	1065353216
+  52              		.global	speedMultiplier
+  53              		.section	.rodata.speedMultiplier,"a",%progbits
+  54              		.align	2
+  57              	speedMultiplier:
+  58 0000 0000803F 		.word	1065353216
+  59              		.global	minSpeed
+  60              		.section	.rodata.minSpeed,"a",%progbits
+  61              		.align	2
+  64              	minSpeed:
+  65 0000 B81E053E 		.word	1040522936
+  66              		.global	linetimeout
+  67              		.section	.rodata.linetimeout,"a",%progbits
+  68              		.align	2
+  71              	linetimeout:
+  72 0000 BC020000 		.word	700
+  73              		.global	ruckwartsZeit
+  74              		.section	.rodata.ruckwartsZeit,"a",%progbits
+  75              		.align	2
+  78              	ruckwartsZeit:
+  79 0000 20030000 		.word	800
+  80              		.comm	camData,512,4
+  81              		.comm	active,4,4
+  82              		.comm	Sausl,4,4
+  83              		.comm	linemissing,4,4
+  84              		.comm	checkLineStep,4,4
+  85              		.comm	Motorspeed,4,4
+  86              		.comm	Servoausl,4,4
+  87              		.comm	drivingBack,4,4
+  88              		.text
+  89              	.Letext0:
+  90              		.file 1 "../Sources/config.c"
+  91              		.file 2 "D:/NWT/Workplace/FRDM-TFC/Project_Headers/LineScanCam.h"
+  92              		.file 3 "D:/NWT/Workplace/FRDM-TFC/Project_Headers/motorServo.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 config.c
+C:\Users\Darkp\AppData\Local\Temp\ccSjXIaE.s:22     .rodata.motor:00000000 motor
+C:\Users\Darkp\AppData\Local\Temp\ccSjXIaE.s:19     .rodata.motor:00000000 $d
+C:\Users\Darkp\AppData\Local\Temp\ccSjXIaE.s:29     .rodata.servo:00000000 servo
+C:\Users\Darkp\AppData\Local\Temp\ccSjXIaE.s:26     .rodata.servo:00000000 $d
+C:\Users\Darkp\AppData\Local\Temp\ccSjXIaE.s:36     .rodata.LEDconfig:00000000 LEDconfig
+C:\Users\Darkp\AppData\Local\Temp\ccSjXIaE.s:33     .rodata.LEDconfig:00000000 $d
+C:\Users\Darkp\AppData\Local\Temp\ccSjXIaE.s:43     .rodata.target:00000000 target
+C:\Users\Darkp\AppData\Local\Temp\ccSjXIaE.s:40     .rodata.target:00000000 $d
+C:\Users\Darkp\AppData\Local\Temp\ccSjXIaE.s:50     .rodata.auslmultiplier:00000000 auslmultiplier
+C:\Users\Darkp\AppData\Local\Temp\ccSjXIaE.s:47     .rodata.auslmultiplier:00000000 $d
+C:\Users\Darkp\AppData\Local\Temp\ccSjXIaE.s:57     .rodata.speedMultiplier:00000000 speedMultiplier
+C:\Users\Darkp\AppData\Local\Temp\ccSjXIaE.s:54     .rodata.speedMultiplier:00000000 $d
+C:\Users\Darkp\AppData\Local\Temp\ccSjXIaE.s:64     .rodata.minSpeed:00000000 minSpeed
+C:\Users\Darkp\AppData\Local\Temp\ccSjXIaE.s:61     .rodata.minSpeed:00000000 $d
+C:\Users\Darkp\AppData\Local\Temp\ccSjXIaE.s:71     .rodata.linetimeout:00000000 linetimeout
+C:\Users\Darkp\AppData\Local\Temp\ccSjXIaE.s:68     .rodata.linetimeout:00000000 $d
+C:\Users\Darkp\AppData\Local\Temp\ccSjXIaE.s:78     .rodata.ruckwartsZeit:00000000 ruckwartsZeit
+C:\Users\Darkp\AppData\Local\Temp\ccSjXIaE.s:75     .rodata.ruckwartsZeit:00000000 $d
+                            *COM*:00000200 camData
+                            *COM*:00000004 active
+                            *COM*:00000004 Sausl
+                            *COM*:00000004 linemissing
+                            *COM*:00000004 checkLineStep
+                            *COM*:00000004 Motorspeed
+                            *COM*:00000004 Servoausl
+                            *COM*:00000004 drivingBack
+
+NO UNDEFINED SYMBOLS

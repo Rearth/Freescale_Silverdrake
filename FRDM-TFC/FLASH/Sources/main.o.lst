@@ -1,0 +1,486 @@
+   1              		.cpu cortex-m0
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 34, 0
+  11              		.eabi_attribute 18, 4
+  12              		.code	16
+  13              		.file	"main.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.comm	motor,4,4
+  18              		.comm	servo,4,4
+  19              		.comm	LEDconfig,4,4
+  20              		.comm	target,4,4
+  21              		.comm	auslmultiplier,4,4
+  22              		.comm	speedMultiplier,4,4
+  23              		.comm	minSpeed,4,4
+  24              		.comm	linetimeout,4,4
+  25              		.comm	ruckwartsZeit,4,4
+  26              		.comm	camData,512,4
+  27              		.comm	active,4,4
+  28              		.comm	Sausl,4,4
+  29              		.comm	linemissing,4,4
+  30              		.comm	checkLineStep,4,4
+  31              		.comm	Motorspeed,4,4
+  32              		.comm	Servoausl,4,4
+  33              		.comm	drivingBack,4,4
+  34              		.global	curblink
+  35              		.section	.bss.curblink,"aw",%nobits
+  36              		.align	2
+  39              	curblink:
+  40 0000 00000000 		.space	4
+  41              		.section	.rodata
+  42              		.align	2
+  43              	.LC1:
+  44 0000 200D0A00 		.ascii	" \015\012\000"
+  45              		.align	2
+  46              	.LC3:
+  47 0004 2D2D2D2D 		.ascii	"---------------------------------------------------"
+  47      2D2D2D2D 
+  47      2D2D2D2D 
+  47      2D2D2D2D 
+  47      2D2D2D2D 
+  48 0037 2D200D0A 		.ascii	"- \015\012\000"
+  48      00
+  49              		.align	2
+  50              	.LC5:
+  51 003c 20204672 		.ascii	"  Freescale-Cup Programm von Bill Hu/David Waidner "
+  51      65657363 
+  51      616C652D 
+  51      43757020 
+  51      50726F67 
+  52 006f 0D0A00   		.ascii	"\015\012\000"
+  53 0072 0000     		.section	.text.main,"ax",%progbits
+  54              		.align	2
+  55              		.global	main
+  56              		.code	16
+  57              		.thumb_func
+  59              	main:
+  60              	.LFB0:
+  61              		.file 1 "../Sources/main.c"
+   1:../Sources/main.c **** /*
+   2:../Sources/main.c ****  * LineScanCam.h
+   3:../Sources/main.c ****  *
+   4:../Sources/main.c ****  *  Created on: May 23, 2016
+   5:../Sources/main.c ****  *      Author: Darkp
+   6:../Sources/main.c ****  */
+   7:../Sources/main.c **** 
+   8:../Sources/main.c **** #include "derivative.h" //enthält Unterstützung für bestimmt peripherie
+   9:../Sources/main.c **** #include "TFC\TFC.h"	//enthält alle anderen wichtigen classes
+  10:../Sources/main.c **** #include <inttypes.h>	//enthält Unterstützung für verschiedene integer-arten (uint8/uint16,...)
+  11:../Sources/main.c **** #include <stdio.h>		//enthält Methoden für die Textdarstellung
+  12:../Sources/main.c **** 
+  13:../Sources/main.c **** 
+  14:../Sources/main.c **** /* Hauptclasse, hier werden alle wichtigen Methoden aufgerufen*/
+  15:../Sources/main.c **** 
+  16:../Sources/main.c **** int curblink = 0;		//wird int der main classe für die benachrichtung, dass das hauptprogramm noch n
+  17:../Sources/main.c **** 	
+  18:../Sources/main.c **** int main(void)
+  19:../Sources/main.c **** {
+  62              		.loc 1 19 0
+  63              		.cfi_startproc
+  64 0000 80B5     		push	{r7, lr}
+  65              	.LCFI0:
+  66              		.cfi_def_cfa_offset 8
+  67              		.cfi_offset 7, -8
+  68              		.cfi_offset 14, -4
+  69 0002 82B0     		sub	sp, sp, #8
+  70              	.LCFI1:
+  71              		.cfi_def_cfa_offset 16
+  72 0004 00AF     		add	r7, sp, #0
+  73              	.LCFI2:
+  74              		.cfi_def_cfa_register 7
+  20:../Sources/main.c **** 	TFC_Init();			//intitialisiert alle wichtigen komponenten (IO Pins, Camera, Terminal, ...)		
+  75              		.loc 1 20 0
+  76 0006 FFF7FEFF 		bl	TFC_Init
+  21:../Sources/main.c **** 	
+  22:../Sources/main.c **** 	TERMINAL_PRINTF(" \r\n");															//Willkommensnachricht im Terminal
+  77              		.loc 1 22 0
+  78 000a 524A     		ldr	r2, .L12
+  79 000c 524B     		ldr	r3, .L12+4
+  80 000e 101C     		mov	r0, r2
+  81 0010 191C     		mov	r1, r3
+  82 0012 FFF7FEFF 		bl	Qprintf
+  23:../Sources/main.c **** 	TERMINAL_PRINTF("---------------------------------------------------- \r\n");		//Da keine UART too
+  83              		.loc 1 23 0
+  84 0016 4F4A     		ldr	r2, .L12
+  85 0018 504B     		ldr	r3, .L12+8
+  86 001a 101C     		mov	r0, r2
+  87 001c 191C     		mov	r1, r3
+  88 001e FFF7FEFF 		bl	Qprintf
+  24:../Sources/main.c **** 	TERMINAL_PRINTF("  Freescale-Cup Programm von Bill Hu/David Waidner \r\n");			//das Terminal nur ü
+  89              		.loc 1 24 0
+  90 0022 4C4A     		ldr	r2, .L12
+  91 0024 4E4B     		ldr	r3, .L12+12
+  92 0026 101C     		mov	r0, r2
+  93 0028 191C     		mov	r1, r3
+  94 002a FFF7FEFF 		bl	Qprintf
+  25:../Sources/main.c **** 	TERMINAL_PRINTF("---------------------------------------------------- \r\n");		//dazu wird ein aus
+  95              		.loc 1 25 0
+  96 002e 494A     		ldr	r2, .L12
+  97 0030 4A4B     		ldr	r3, .L12+8
+  98 0032 101C     		mov	r0, r2
+  99 0034 191C     		mov	r1, r3
+ 100 0036 FFF7FEFF 		bl	Qprintf
+  26:../Sources/main.c **** 	TERMINAL_PRINTF(" \r\n");															//der benötigte port kann im gerätemanager nachgesehen wer
+ 101              		.loc 1 26 0
+ 102 003a 464A     		ldr	r2, .L12
+ 103 003c 464B     		ldr	r3, .L12+4
+ 104 003e 101C     		mov	r0, r2
+ 105 0040 191C     		mov	r1, r3
+ 106 0042 FFF7FEFF 		bl	Qprintf
+ 107 0046 00E0     		b	.L10
+ 108              	.L11:
+  27:../Sources/main.c **** 																						//refresh-rate muss auf 115200 gestellt werden
+  28:../Sources/main.c **** 	for(;;) {				//Hauptschleife, wird dauerhaft wiederholt
+  29:../Sources/main.c **** 		TFC_Task();			//hält grundprozesse am laufen, u.a. das Terminal
+  30:../Sources/main.c **** 		
+  31:../Sources/main.c **** 		if(TFC_Ticker[0]>=20) {		//wird alle 20 ms ausgeführt (jedesmal wenn der ticket 20 ms erriecht wi
+  32:../Sources/main.c **** 			TFC_Ticker[0] = 0;		//der Ticker wird wieder auf 0 gesetzt)
+  33:../Sources/main.c **** 			
+  34:../Sources/main.c **** 			if (active == 0) {					//falls Hauptpgrogramm noch nicht aufgerufen wurde, kann zum testen benut
+  35:../Sources/main.c **** 				float pot1 = TFC_ReadPot(0);	//liest potentiometer 1 (gibt werte zwischen -1 und 1 zurück)
+  36:../Sources/main.c **** 				setServo(pot1);					//setzt den Servo auf den Wert dieses Potentiometers
+  37:../Sources/main.c **** 				
+  38:../Sources/main.c **** 				float pot2 = TFC_ReadPot(1);	//liest potentiometer 2
+  39:../Sources/main.c **** 				setMotorSpeed(pot2);			//setzt motor auf den Wert des 2. Potentiometers
+  40:../Sources/main.c **** 			}
+  41:../Sources/main.c **** 			
+  42:../Sources/main.c **** 			
+  43:../Sources/main.c **** 			if(TFC_Ticker[1] >= 100) {		//2. Ticker. Diese Schleife wird alle 100 ms ausgeführt
+  44:../Sources/main.c **** 				TFC_Ticker[1] = 0;
+  45:../Sources/main.c **** 				loadCameraData();			//lädt die aktuellen Kameradaten in das int-array "camData"
+  46:../Sources/main.c **** 				calcquarterLED(camData);	//setzt die Led-richtungsanzeige
+  47:../Sources/main.c **** 				
+  48:../Sources/main.c **** 				if (active == 1) {			//falls hauptprogramm läuft wird dies ausgeführt
+  49:../Sources/main.c **** 					calcdirection();		//berechnet in welche richtung gefahren werden muss
+  50:../Sources/main.c **** 					setServo(Sausl);		//justiert den servo in die neue richtung
+  51:../Sources/main.c **** 					checkforLine();			//prüft ob sich die Linie noch im Sichtfeld befindet
+  52:../Sources/main.c **** 				}
+  53:../Sources/main.c **** 			}
+  54:../Sources/main.c **** 			
+  55:../Sources/main.c **** 			
+  56:../Sources/main.c **** 			if(TFC_PUSH_BUTTON_0_PRESSED) {	//falls Knopf 1 gedrückt wird, started in der Funktion "calbcam"
+  57:../Sources/main.c **** 				calibcam();					//Hauptprogramm bzw. die automatische steuerung und die variable "active" wird 
+  58:../Sources/main.c **** 			}
+  59:../Sources/main.c **** 			if(TFC_PUSH_BUTTON_1_PRESSED) {	//benutzt um Hauptprogramm wieder auszuschalten
+  60:../Sources/main.c **** 				active = 0;
+  61:../Sources/main.c **** 			}
+  62:../Sources/main.c **** 			
+  63:../Sources/main.c **** 		}
+  64:../Sources/main.c **** 		
+  65:../Sources/main.c **** 		if(TFC_Ticker[2]>=150) {		//benachrichtung dass das Hauptprogramm noch nicht läuft, lässt
+  66:../Sources/main.c **** 										//die LEDs alle 150 ms blinken
+  67:../Sources/main.c **** 			TFC_Ticker[2] = 0;
+  68:../Sources/main.c **** 			
+  69:../Sources/main.c **** 			if (active == 0) {
+  70:../Sources/main.c **** 				if (curblink == 0) {
+  71:../Sources/main.c **** 					AllLEDsON();
+  72:../Sources/main.c **** 					curblink = 1;
+  73:../Sources/main.c **** 				} else if (curblink == 1) {
+  74:../Sources/main.c **** 					forceAllOff();
+  75:../Sources/main.c **** 					curblink = 0;
+  76:../Sources/main.c **** 				}
+  77:../Sources/main.c **** 			}
+  78:../Sources/main.c **** 			
+  79:../Sources/main.c **** 		}
+  80:../Sources/main.c **** 		
+  81:../Sources/main.c **** 		if(TFC_Ticker[3]>= linetimeout && linemissing == 1) {		//teil der Methode zum überprüfen ob die L
+  82:../Sources/main.c **** 																	//noch im Sichtfeld ist (nach 300 ms beendet es automatisch)
+  83:../Sources/main.c **** 			active = 0;
+  84:../Sources/main.c **** 			linemissing = 0;
+  85:../Sources/main.c **** 			driveBacktoLine();
+  86:../Sources/main.c **** 		}
+  87:../Sources/main.c **** 		
+  88:../Sources/main.c **** 		if(TFC_Ticker[4] >= ruckwartsZeit) {						//falls der Timer fürs rückwärtsfahren abgeloffen ist, 
+  89:../Sources/main.c **** 			
+  90:../Sources/main.c **** 			drivingBack = 0;
+  91:../Sources/main.c **** 		
+  92:../Sources/main.c **** 		}
+  93:../Sources/main.c **** 				
+  94:../Sources/main.c **** 	}
+ 109              		.loc 1 94 0
+ 110 0048 C046     		mov	r8, r8
+ 111              	.L10:
+  29:../Sources/main.c **** 		TFC_Task();			//hält grundprozesse am laufen, u.a. das Terminal
+ 112              		.loc 1 29 0
+ 113 004a FFF7FEFF 		bl	TFC_Task
+  31:../Sources/main.c **** 		if(TFC_Ticker[0]>=20) {		//wird alle 20 ms ausgeführt (jedesmal wenn der ticket 20 ms erriecht wi
+ 114              		.loc 1 31 0
+ 115 004e 454B     		ldr	r3, .L12+16
+ 116 0050 1B68     		ldr	r3, [r3]
+ 117 0052 132B     		cmp	r3, #19
+ 118 0054 43D9     		bls	.L2
+  32:../Sources/main.c **** 			TFC_Ticker[0] = 0;		//der Ticker wird wieder auf 0 gesetzt)
+ 119              		.loc 1 32 0
+ 120 0056 434B     		ldr	r3, .L12+16
+ 121 0058 0022     		mov	r2, #0
+ 122 005a 1A60     		str	r2, [r3]
+  34:../Sources/main.c **** 			if (active == 0) {					//falls Hauptpgrogramm noch nicht aufgerufen wurde, kann zum testen benut
+ 123              		.loc 1 34 0
+ 124 005c 424B     		ldr	r3, .L12+20
+ 125 005e 1B68     		ldr	r3, [r3]
+ 126 0060 002B     		cmp	r3, #0
+ 127 0062 11D1     		bne	.L3
+ 128              	.LBB2:
+  35:../Sources/main.c **** 				float pot1 = TFC_ReadPot(0);	//liest potentiometer 1 (gibt werte zwischen -1 und 1 zurück)
+ 129              		.loc 1 35 0
+ 130 0064 0020     		mov	r0, #0
+ 131 0066 FFF7FEFF 		bl	TFC_ReadPot
+ 132 006a 031C     		add	r3, r0, #0
+ 133 006c 7B60     		str	r3, [r7, #4]
+  36:../Sources/main.c **** 				setServo(pot1);					//setzt den Servo auf den Wert dieses Potentiometers
+ 134              		.loc 1 36 0
+ 135 006e 7B68     		ldr	r3, [r7, #4]
+ 136 0070 181C     		add	r0, r3, #0
+ 137 0072 FFF7FEFF 		bl	setServo
+  38:../Sources/main.c **** 				float pot2 = TFC_ReadPot(1);	//liest potentiometer 2
+ 138              		.loc 1 38 0
+ 139 0076 0120     		mov	r0, #1
+ 140 0078 FFF7FEFF 		bl	TFC_ReadPot
+ 141 007c 031C     		add	r3, r0, #0
+ 142 007e 3B60     		str	r3, [r7]
+  39:../Sources/main.c **** 				setMotorSpeed(pot2);			//setzt motor auf den Wert des 2. Potentiometers
+ 143              		.loc 1 39 0
+ 144 0080 3B68     		ldr	r3, [r7]
+ 145 0082 181C     		add	r0, r3, #0
+ 146 0084 FFF7FEFF 		bl	setMotorSpeed
+ 147              	.L3:
+ 148              	.LBE2:
+  43:../Sources/main.c **** 			if(TFC_Ticker[1] >= 100) {		//2. Ticker. Diese Schleife wird alle 100 ms ausgeführt
+ 149              		.loc 1 43 0
+ 150 0088 364B     		ldr	r3, .L12+16
+ 151 008a 5B68     		ldr	r3, [r3, #4]
+ 152 008c 632B     		cmp	r3, #99
+ 153 008e 15D9     		bls	.L4
+  44:../Sources/main.c **** 				TFC_Ticker[1] = 0;
+ 154              		.loc 1 44 0
+ 155 0090 344B     		ldr	r3, .L12+16
+ 156 0092 0022     		mov	r2, #0
+ 157 0094 5A60     		str	r2, [r3, #4]
+  45:../Sources/main.c **** 				loadCameraData();			//lädt die aktuellen Kameradaten in das int-array "camData"
+ 158              		.loc 1 45 0
+ 159 0096 FFF7FEFF 		bl	loadCameraData
+  46:../Sources/main.c **** 				calcquarterLED(camData);	//setzt die Led-richtungsanzeige
+ 160              		.loc 1 46 0
+ 161 009a 344B     		ldr	r3, .L12+24
+ 162 009c 181C     		mov	r0, r3
+ 163 009e FFF7FEFF 		bl	calcquarterLED
+  48:../Sources/main.c **** 				if (active == 1) {			//falls hauptprogramm läuft wird dies ausgeführt
+ 164              		.loc 1 48 0
+ 165 00a2 314B     		ldr	r3, .L12+20
+ 166 00a4 1B68     		ldr	r3, [r3]
+ 167 00a6 012B     		cmp	r3, #1
+ 168 00a8 08D1     		bne	.L4
+  49:../Sources/main.c **** 					calcdirection();		//berechnet in welche richtung gefahren werden muss
+ 169              		.loc 1 49 0
+ 170 00aa FFF7FEFF 		bl	calcdirection
+  50:../Sources/main.c **** 					setServo(Sausl);		//justiert den servo in die neue richtung
+ 171              		.loc 1 50 0
+ 172 00ae 304B     		ldr	r3, .L12+28
+ 173 00b0 1B68     		ldr	r3, [r3]
+ 174 00b2 181C     		add	r0, r3, #0
+ 175 00b4 FFF7FEFF 		bl	setServo
+  51:../Sources/main.c **** 					checkforLine();			//prüft ob sich die Linie noch im Sichtfeld befindet
+ 176              		.loc 1 51 0
+ 177 00b8 FFF7FEFF 		bl	checkforLine
+ 178              	.L4:
+  56:../Sources/main.c **** 			if(TFC_PUSH_BUTTON_0_PRESSED) {	//falls Knopf 1 gedrückt wird, started in der Funktion "calbcam"
+ 179              		.loc 1 56 0
+ 180 00bc 2D4B     		ldr	r3, .L12+32
+ 181 00be 1A69     		ldr	r2, [r3, #16]
+ 182 00c0 8023     		mov	r3, #128
+ 183 00c2 9B01     		lsl	r3, r3, #6
+ 184 00c4 1340     		and	r3, r2
+ 185 00c6 01D0     		beq	.L5
+  57:../Sources/main.c **** 				calibcam();					//Hauptprogramm bzw. die automatische steuerung und die variable "active" wird 
+ 186              		.loc 1 57 0
+ 187 00c8 FFF7FEFF 		bl	calibcam
+ 188              	.L5:
+  59:../Sources/main.c **** 			if(TFC_PUSH_BUTTON_1_PRESSED) {	//benutzt um Hauptprogramm wieder auszuschalten
+ 189              		.loc 1 59 0
+ 190 00cc 294B     		ldr	r3, .L12+32
+ 191 00ce 1A69     		ldr	r2, [r3, #16]
+ 192 00d0 8023     		mov	r3, #128
+ 193 00d2 9B02     		lsl	r3, r3, #10
+ 194 00d4 1340     		and	r3, r2
+ 195 00d6 02D0     		beq	.L2
+  60:../Sources/main.c **** 				active = 0;
+ 196              		.loc 1 60 0
+ 197 00d8 234B     		ldr	r3, .L12+20
+ 198 00da 0022     		mov	r2, #0
+ 199 00dc 1A60     		str	r2, [r3]
+ 200              	.L2:
+  65:../Sources/main.c **** 		if(TFC_Ticker[2]>=150) {		//benachrichtung dass das Hauptprogramm noch nicht läuft, lässt
+ 201              		.loc 1 65 0
+ 202 00de 214B     		ldr	r3, .L12+16
+ 203 00e0 9B68     		ldr	r3, [r3, #8]
+ 204 00e2 952B     		cmp	r3, #149
+ 205 00e4 19D9     		bls	.L6
+  67:../Sources/main.c **** 			TFC_Ticker[2] = 0;
+ 206              		.loc 1 67 0
+ 207 00e6 1F4B     		ldr	r3, .L12+16
+ 208 00e8 0022     		mov	r2, #0
+ 209 00ea 9A60     		str	r2, [r3, #8]
+  69:../Sources/main.c **** 			if (active == 0) {
+ 210              		.loc 1 69 0
+ 211 00ec 1E4B     		ldr	r3, .L12+20
+ 212 00ee 1B68     		ldr	r3, [r3]
+ 213 00f0 002B     		cmp	r3, #0
+ 214 00f2 12D1     		bne	.L6
+  70:../Sources/main.c **** 				if (curblink == 0) {
+ 215              		.loc 1 70 0
+ 216 00f4 204B     		ldr	r3, .L12+36
+ 217 00f6 1B68     		ldr	r3, [r3]
+ 218 00f8 002B     		cmp	r3, #0
+ 219 00fa 05D1     		bne	.L7
+  71:../Sources/main.c **** 					AllLEDsON();
+ 220              		.loc 1 71 0
+ 221 00fc FFF7FEFF 		bl	AllLEDsON
+  72:../Sources/main.c **** 					curblink = 1;
+ 222              		.loc 1 72 0
+ 223 0100 1D4B     		ldr	r3, .L12+36
+ 224 0102 0122     		mov	r2, #1
+ 225 0104 1A60     		str	r2, [r3]
+ 226 0106 08E0     		b	.L6
+ 227              	.L7:
+  73:../Sources/main.c **** 				} else if (curblink == 1) {
+ 228              		.loc 1 73 0
+ 229 0108 1B4B     		ldr	r3, .L12+36
+ 230 010a 1B68     		ldr	r3, [r3]
+ 231 010c 012B     		cmp	r3, #1
+ 232 010e 04D1     		bne	.L6
+  74:../Sources/main.c **** 					forceAllOff();
+ 233              		.loc 1 74 0
+ 234 0110 FFF7FEFF 		bl	forceAllOff
+  75:../Sources/main.c **** 					curblink = 0;
+ 235              		.loc 1 75 0
+ 236 0114 184B     		ldr	r3, .L12+36
+ 237 0116 0022     		mov	r2, #0
+ 238 0118 1A60     		str	r2, [r3]
+ 239              	.L6:
+  81:../Sources/main.c **** 		if(TFC_Ticker[3]>= linetimeout && linemissing == 1) {		//teil der Methode zum überprüfen ob die L
+ 240              		.loc 1 81 0
+ 241 011a 124B     		ldr	r3, .L12+16
+ 242 011c DA68     		ldr	r2, [r3, #12]
+ 243 011e 174B     		ldr	r3, .L12+40
+ 244 0120 1B68     		ldr	r3, [r3]
+ 245 0122 9A42     		cmp	r2, r3
+ 246 0124 0BD3     		bcc	.L8
+  81:../Sources/main.c **** 		if(TFC_Ticker[3]>= linetimeout && linemissing == 1) {		//teil der Methode zum überprüfen ob die L
+ 247              		.loc 1 81 0 is_stmt 0
+ 248 0126 164B     		ldr	r3, .L12+44
+ 249 0128 1B68     		ldr	r3, [r3]
+ 250 012a 012B     		cmp	r3, #1
+ 251 012c 07D1     		bne	.L8
+  83:../Sources/main.c **** 			active = 0;
+ 252              		.loc 1 83 0 is_stmt 1
+ 253 012e 0E4B     		ldr	r3, .L12+20
+ 254 0130 0022     		mov	r2, #0
+ 255 0132 1A60     		str	r2, [r3]
+  84:../Sources/main.c **** 			linemissing = 0;
+ 256              		.loc 1 84 0
+ 257 0134 124B     		ldr	r3, .L12+44
+ 258 0136 0022     		mov	r2, #0
+ 259 0138 1A60     		str	r2, [r3]
+  85:../Sources/main.c **** 			driveBacktoLine();
+ 260              		.loc 1 85 0
+ 261 013a FFF7FEFF 		bl	driveBacktoLine
+ 262              	.L8:
+  88:../Sources/main.c **** 		if(TFC_Ticker[4] >= ruckwartsZeit) {						//falls der Timer fürs rückwärtsfahren abgeloffen ist, 
+ 263              		.loc 1 88 0
+ 264 013e 094B     		ldr	r3, .L12+16
+ 265 0140 1A69     		ldr	r2, [r3, #16]
+ 266 0142 104B     		ldr	r3, .L12+48
+ 267 0144 1B68     		ldr	r3, [r3]
+ 268 0146 9A42     		cmp	r2, r3
+ 269 0148 00D2     		bcs	.LCB180
+ 270 014a 7DE7     		b	.L11	@long jump
+ 271              	.LCB180:
+  90:../Sources/main.c **** 			drivingBack = 0;
+ 272              		.loc 1 90 0
+ 273 014c 0E4B     		ldr	r3, .L12+52
+ 274 014e 0022     		mov	r2, #0
+ 275 0150 1A60     		str	r2, [r3]
+ 276              		.loc 1 94 0
+ 277 0152 79E7     		b	.L11
+ 278              	.L13:
+ 279              		.align	2
+ 280              	.L12:
+ 281 0154 00000000 		.word	SDA_SERIAL_OUTGOING_QUEUE
+ 282 0158 00000000 		.word	.LC1
+ 283 015c 04000000 		.word	.LC3
+ 284 0160 3C000000 		.word	.LC5
+ 285 0164 00000000 		.word	TFC_Ticker
+ 286 0168 00000000 		.word	active
+ 287 016c 00000000 		.word	camData
+ 288 0170 00000000 		.word	Sausl
+ 289 0174 80F00F40 		.word	1074786432
+ 290 0178 00000000 		.word	curblink
+ 291 017c 00000000 		.word	linetimeout
+ 292 0180 00000000 		.word	linemissing
+ 293 0184 00000000 		.word	ruckwartsZeit
+ 294 0188 00000000 		.word	drivingBack
+ 295              		.cfi_endproc
+ 296              	.LFE0:
+ 298              		.text
+ 299              	.Letext0:
+ 300              		.file 2 "D:/Programme/CodeWarrior/CW MCU v10.6.4/MCU/ARM_GCC_Support/ewl/EWL_C/include/cstdint"
+ 301              		.file 3 "D:/NWT/Workplace/FRDM-TFC/Project_Headers/MKL25Z4.h"
+ 302              		.file 4 "D:/NWT/Workplace/FRDM-TFC/Project_Headers/TFC\\TFC_Queue.h"
+ 303              		.file 5 "D:/NWT/Workplace/FRDM-TFC/Project_Headers/TFC\\TFC_ARM_SysTick.h"
+ 304              		.file 6 "D:/NWT/Workplace/FRDM-TFC/Project_Headers/TFC\\TFC_UART.h"
+ 305              		.file 7 "D:/NWT/Workplace/FRDM-TFC/Project_Headers/config.h"
+ 306              		.file 8 "D:/NWT/Workplace/FRDM-TFC/Project_Headers/LineScanCam.h"
+ 307              		.file 9 "D:/NWT/Workplace/FRDM-TFC/Project_Headers/motorServo.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 main.c
+                            *COM*:00000004 motor
+                            *COM*:00000004 servo
+                            *COM*:00000004 LEDconfig
+                            *COM*:00000004 target
+                            *COM*:00000004 auslmultiplier
+                            *COM*:00000004 speedMultiplier
+                            *COM*:00000004 minSpeed
+                            *COM*:00000004 linetimeout
+                            *COM*:00000004 ruckwartsZeit
+                            *COM*:00000200 camData
+                            *COM*:00000004 active
+                            *COM*:00000004 Sausl
+                            *COM*:00000004 linemissing
+                            *COM*:00000004 checkLineStep
+                            *COM*:00000004 Motorspeed
+                            *COM*:00000004 Servoausl
+                            *COM*:00000004 drivingBack
+C:\Users\Darkp\AppData\Local\Temp\ccA72UQu.s:39     .bss.curblink:00000000 curblink
+C:\Users\Darkp\AppData\Local\Temp\ccA72UQu.s:36     .bss.curblink:00000000 $d
+C:\Users\Darkp\AppData\Local\Temp\ccA72UQu.s:42     .rodata:00000000 $d
+C:\Users\Darkp\AppData\Local\Temp\ccA72UQu.s:54     .text.main:00000000 $t
+C:\Users\Darkp\AppData\Local\Temp\ccA72UQu.s:59     .text.main:00000000 main
+C:\Users\Darkp\AppData\Local\Temp\ccA72UQu.s:281    .text.main:00000154 $d
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+TFC_Init
+Qprintf
+TFC_Task
+TFC_ReadPot
+setServo
+setMotorSpeed
+loadCameraData
+calcquarterLED
+calcdirection
+checkforLine
+calibcam
+AllLEDsON
+forceAllOff
+driveBacktoLine
+SDA_SERIAL_OUTGOING_QUEUE
+TFC_Ticker

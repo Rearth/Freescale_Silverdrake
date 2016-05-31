@@ -1,0 +1,575 @@
+   1              		.cpu cortex-m0
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 34, 0
+  11              		.eabi_attribute 18, 4
+  12              		.code	16
+  13              		.file	"motorServo.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.comm	motor,4,4
+  18              		.comm	servo,4,4
+  19              		.comm	LEDconfig,4,4
+  20              		.comm	target,4,4
+  21              		.comm	auslmultiplier,4,4
+  22              		.comm	speedMultiplier,4,4
+  23              		.comm	minSpeed,4,4
+  24              		.comm	linetimeout,4,4
+  25              		.comm	ruckwartsZeit,4,4
+  26              		.comm	camData,512,4
+  27              		.comm	active,4,4
+  28              		.comm	Sausl,4,4
+  29              		.comm	linemissing,4,4
+  30              		.comm	checkLineStep,4,4
+  31              		.comm	Motorspeed,4,4
+  32              		.comm	Servoausl,4,4
+  33              		.global	drivingBack
+  34              		.section	.bss.drivingBack,"aw",%nobits
+  35              		.align	2
+  38              	drivingBack:
+  39 0000 00000000 		.space	4
+  40              		.global	__aeabi_fmul
+  41              		.global	__aeabi_f2d
+  42              		.global	__aeabi_dmul
+  43              		.global	__aeabi_dsub
+  44              		.global	__aeabi_d2f
+  45              		.section	.text.setServo,"ax",%progbits
+  46              		.align	2
+  47              		.global	setServo
+  48              		.code	16
+  49              		.thumb_func
+  51              	setServo:
+  52              	.LFB0:
+  53              		.file 1 "../Sources/motorServo.c"
+   1:../Sources/motorServo.c **** /*
+   2:../Sources/motorServo.c ****  * motorServo.c
+   3:../Sources/motorServo.c ****  *
+   4:../Sources/motorServo.c ****  *  Created on: May 25, 2016
+   5:../Sources/motorServo.c ****  *      Author: Darkp
+   6:../Sources/motorServo.c ****  */
+   7:../Sources/motorServo.c **** 
+   8:../Sources/motorServo.c **** #include "TFC\TFC.h"		//enthält alle wichtigen anderen Methoden
+   9:../Sources/motorServo.c **** 
+  10:../Sources/motorServo.c **** float Motorspeed;		//enthält die aktuelle geschwindigkeit (von -1 bis 1)
+  11:../Sources/motorServo.c **** float Servoausl;		//gibt die aktuelle Servoauslenkung an (von -1 bis 1)
+  12:../Sources/motorServo.c **** int drivingBack = 0;	//angabe ob es gerade zurückfährt
+  13:../Sources/motorServo.c **** 
+  14:../Sources/motorServo.c **** void setServo(float ausl) {			//justiert den Servo
+  54              		.loc 1 14 0
+  55              		.cfi_startproc
+  56 0000 90B5     		push	{r4, r7, lr}
+  57              	.LCFI0:
+  58              		.cfi_def_cfa_offset 12
+  59              		.cfi_offset 4, -12
+  60              		.cfi_offset 7, -8
+  61              		.cfi_offset 14, -4
+  62 0002 85B0     		sub	sp, sp, #20
+  63              	.LCFI1:
+  64              		.cfi_def_cfa_offset 32
+  65 0004 00AF     		add	r7, sp, #0
+  66              	.LCFI2:
+  67              		.cfi_def_cfa_register 7
+  68 0006 7860     		str	r0, [r7, #4]
+  15:../Sources/motorServo.c **** 	
+  16:../Sources/motorServo.c **** 	float value;					//lokale variable
+  17:../Sources/motorServo.c **** 	value = (ausl * auslmultiplier) * 0.6 - 0.35;		//reduziert die auslenkung, da der Servo bei 1 / -1
+  69              		.loc 1 17 0
+  70 0008 1B4B     		ldr	r3, .L2+16
+  71 000a 1B68     		ldr	r3, [r3]
+  72 000c 181C     		add	r0, r3, #0
+  73 000e 7968     		ldr	r1, [r7, #4]
+  74 0010 FFF7FEFF 		bl	__aeabi_fmul
+  75 0014 031C     		add	r3, r0, #0
+  76 0016 181C     		add	r0, r3, #0
+  77 0018 FFF7FEFF 		bl	__aeabi_f2d
+  78 001c 031C     		mov	r3, r0
+  79 001e 0C1C     		mov	r4, r1
+  80 0020 181C     		mov	r0, r3
+  81 0022 211C     		mov	r1, r4
+  82 0024 114B     		ldr	r3, .L2+4
+  83 0026 104A     		ldr	r2, .L2
+  84 0028 FFF7FEFF 		bl	__aeabi_dmul
+  85 002c 031C     		mov	r3, r0
+  86 002e 0C1C     		mov	r4, r1
+  87 0030 181C     		mov	r0, r3
+  88 0032 211C     		mov	r1, r4
+  89 0034 0E4A     		ldr	r2, .L2+8
+  90 0036 0F4B     		ldr	r3, .L2+12
+  91 0038 FFF7FEFF 		bl	__aeabi_dsub
+  92 003c 031C     		mov	r3, r0
+  93 003e 0C1C     		mov	r4, r1
+  94 0040 181C     		mov	r0, r3
+  95 0042 211C     		mov	r1, r4
+  96 0044 FFF7FEFF 		bl	__aeabi_d2f
+  97 0048 031C     		add	r3, r0, #0
+  98 004a FB60     		str	r3, [r7, #12]
+  18:../Sources/motorServo.c **** 									//bewegt den servo zusätzlic um 35% auf eine Seite, da er bei null nicht exakt in nullstel
+  19:../Sources/motorServo.c **** 	Servoausl = value;				//setzt die globale variable
+  99              		.loc 1 19 0
+ 100 004c 0B4B     		ldr	r3, .L2+20
+ 101 004e FA68     		ldr	r2, [r7, #12]
+ 102 0050 1A60     		str	r2, [r3]
+  20:../Sources/motorServo.c **** 	TFC_SetServo(servo, value);		//setzt den Servo auf den Zielwert
+ 103              		.loc 1 20 0
+ 104 0052 0B4B     		ldr	r3, .L2+24
+ 105 0054 1B68     		ldr	r3, [r3]
+ 106 0056 DAB2     		uxtb	r2, r3
+ 107 0058 FB68     		ldr	r3, [r7, #12]
+ 108 005a 101C     		mov	r0, r2
+ 109 005c 191C     		add	r1, r3, #0
+ 110 005e FFF7FEFF 		bl	TFC_SetServo
+  21:../Sources/motorServo.c **** 	
+  22:../Sources/motorServo.c **** }
+ 111              		.loc 1 22 0
+ 112 0062 BD46     		mov	sp, r7
+ 113 0064 05B0     		add	sp, sp, #20
+ 114              		@ sp needed for prologue
+ 115 0066 90BD     		pop	{r4, r7, pc}
+ 116              	.L3:
+ 117              		.align	3
+ 118              	.L2:
+ 119 0068 33333333 		.word	858993459
+ 120 006c 3333E33F 		.word	1071854387
+ 121 0070 66666666 		.word	1717986918
+ 122 0074 6666D63F 		.word	1071015526
+ 123 0078 00000000 		.word	auslmultiplier
+ 124 007c 00000000 		.word	Servoausl
+ 125 0080 00000000 		.word	servo
+ 126              		.cfi_endproc
+ 127              	.LFE0:
+ 129              		.global	__aeabi_fcmple
+ 130              		.global	__aeabi_i2f
+ 131 0084 C046C046 		.section	.text.setMotorSpeed,"ax",%progbits
+ 132              		.align	2
+ 133              		.global	setMotorSpeed
+ 134              		.code	16
+ 135              		.thumb_func
+ 137              	setMotorSpeed:
+ 138              	.LFB1:
+  23:../Sources/motorServo.c **** 
+  24:../Sources/motorServo.c **** void setMotorSpeed(float speed) {				//Methode um die Motorengeschwindigkeit zu setzen
+ 139              		.loc 1 24 0
+ 140              		.cfi_startproc
+ 141 0000 80B5     		push	{r7, lr}
+ 142              	.LCFI3:
+ 143              		.cfi_def_cfa_offset 8
+ 144              		.cfi_offset 7, -8
+ 145              		.cfi_offset 14, -4
+ 146 0002 82B0     		sub	sp, sp, #8
+ 147              	.LCFI4:
+ 148              		.cfi_def_cfa_offset 16
+ 149 0004 00AF     		add	r7, sp, #0
+ 150              	.LCFI5:
+ 151              		.cfi_def_cfa_register 7
+ 152 0006 7860     		str	r0, [r7, #4]
+  25:../Sources/motorServo.c **** 	
+  26:../Sources/motorServo.c **** 	speed = speed * speedMultiplier;			//erhöht/senkt die geschwindigkeit, je nachdem was für eine zah
+ 153              		.loc 1 26 0
+ 154 0008 234B     		ldr	r3, .L11
+ 155 000a 1B68     		ldr	r3, [r3]
+ 156 000c 7868     		ldr	r0, [r7, #4]
+ 157 000e 191C     		add	r1, r3, #0
+ 158 0010 FFF7FEFF 		bl	__aeabi_fmul
+ 159 0014 031C     		add	r3, r0, #0
+ 160 0016 7B60     		str	r3, [r7, #4]
+  27:../Sources/motorServo.c **** 	
+  28:../Sources/motorServo.c **** 	if (speed >= -minSpeed && speed <= minSpeed) {	//wenn die geschwindkeit ca. bei 0 null
+ 161              		.loc 1 28 0
+ 162 0018 204B     		ldr	r3, .L11+4
+ 163 001a 1B68     		ldr	r3, [r3]
+ 164 001c 8022     		mov	r2, #128
+ 165 001e 1206     		lsl	r2, r2, #24
+ 166 0020 5340     		eor	r3, r2
+ 167 0022 181C     		add	r0, r3, #0
+ 168 0024 7968     		ldr	r1, [r7, #4]
+ 169 0026 FFF7FEFF 		bl	__aeabi_fcmple
+ 170 002a 031C     		mov	r3, r0
+ 171 002c 002B     		cmp	r3, #0
+ 172 002e 1AD0     		beq	.L5
+ 173              	.L9:
+ 174              		.loc 1 28 0 is_stmt 0
+ 175 0030 1A4B     		ldr	r3, .L11+4
+ 176 0032 1B68     		ldr	r3, [r3]
+ 177 0034 7868     		ldr	r0, [r7, #4]
+ 178 0036 191C     		add	r1, r3, #0
+ 179 0038 FFF7FEFF 		bl	__aeabi_fcmple
+ 180 003c 031C     		mov	r3, r0
+ 181 003e 002B     		cmp	r3, #0
+ 182 0040 11D0     		beq	.L5
+ 183              	.L10:
+  29:../Sources/motorServo.c **** 		TFC_HBRIDGE_DISABLE;				//schält den Motor aus, setzt die  geschwindkeit auf 0
+ 184              		.loc 1 29 0 is_stmt 1
+ 185 0042 174B     		ldr	r3, .L11+8
+ 186 0044 8022     		mov	r2, #128
+ 187 0046 9203     		lsl	r2, r2, #14
+ 188 0048 9A60     		str	r2, [r3, #8]
+  30:../Sources/motorServo.c **** 		TFC_SetMotorPWM(motor,0);
+ 189              		.loc 1 30 0
+ 190 004a 164B     		ldr	r3, .L11+12
+ 191 004c 1B68     		ldr	r3, [r3]
+ 192 004e 181C     		mov	r0, r3
+ 193 0050 FFF7FEFF 		bl	__aeabi_i2f
+ 194 0054 021C     		add	r2, r0, #0
+ 195 0056 0023     		mov	r3, #0
+ 196 0058 101C     		add	r0, r2, #0
+ 197 005a 191C     		add	r1, r3, #0
+ 198 005c FFF7FEFF 		bl	TFC_SetMotorPWM
+  31:../Sources/motorServo.c **** 		AllLEDsOFF();						//schält LEDs aus
+ 199              		.loc 1 31 0
+ 200 0060 FFF7FEFF 		bl	AllLEDsOFF
+ 201 0064 12E0     		b	.L8
+ 202              	.L5:
+  32:../Sources/motorServo.c **** 	} else {
+  33:../Sources/motorServo.c **** 		TFC_HBRIDGE_ENABLE;					//Schält die Motoren an
+ 203              		.loc 1 33 0
+ 204 0066 0E4B     		ldr	r3, .L11+8
+ 205 0068 8022     		mov	r2, #128
+ 206 006a 9203     		lsl	r2, r2, #14
+ 207 006c 5A60     		str	r2, [r3, #4]
+  34:../Sources/motorServo.c **** 		TFC_SetMotorPWM(motor, speed);		//setzt die Motorengeschindigkeit
+ 208              		.loc 1 34 0
+ 209 006e 0D4B     		ldr	r3, .L11+12
+ 210 0070 1B68     		ldr	r3, [r3]
+ 211 0072 181C     		mov	r0, r3
+ 212 0074 FFF7FEFF 		bl	__aeabi_i2f
+ 213 0078 021C     		add	r2, r0, #0
+ 214 007a 7B68     		ldr	r3, [r7, #4]
+ 215 007c 101C     		add	r0, r2, #0
+ 216 007e 191C     		add	r1, r3, #0
+ 217 0080 FFF7FEFF 		bl	TFC_SetMotorPWM
+  35:../Sources/motorServo.c **** 		LEDs_speedIndic(speed);				//Motor-geschwindkeitsanzeige mithilfe der LEDs
+ 218              		.loc 1 35 0
+ 219 0084 7B68     		ldr	r3, [r7, #4]
+ 220 0086 181C     		add	r0, r3, #0
+ 221 0088 FFF7FEFF 		bl	LEDs_speedIndic
+ 222              	.L8:
+  36:../Sources/motorServo.c **** 	}
+  37:../Sources/motorServo.c **** 	Motorspeed = speed;						//setzt die globale variable
+ 223              		.loc 1 37 0
+ 224 008c 064B     		ldr	r3, .L11+16
+ 225 008e 7A68     		ldr	r2, [r7, #4]
+ 226 0090 1A60     		str	r2, [r3]
+  38:../Sources/motorServo.c **** 	
+  39:../Sources/motorServo.c **** }
+ 227              		.loc 1 39 0
+ 228 0092 BD46     		mov	sp, r7
+ 229 0094 02B0     		add	sp, sp, #8
+ 230              		@ sp needed for prologue
+ 231 0096 80BD     		pop	{r7, pc}
+ 232              	.L12:
+ 233              		.align	2
+ 234              	.L11:
+ 235 0098 00000000 		.word	speedMultiplier
+ 236 009c 00000000 		.word	minSpeed
+ 237 00a0 00F10F40 		.word	1074786560
+ 238 00a4 00000000 		.word	motor
+ 239 00a8 00000000 		.word	Motorspeed
+ 240              		.cfi_endproc
+ 241              	.LFE1:
+ 243              		.section	.rodata
+ 244              		.align	2
+ 245              	.LC10:
+ 246 0000 2043616D 		.ascii	" CamData: %d\000"
+ 246      44617461 
+ 246      3A202564 
+ 246      00
+ 247 000d 000000   		.align	2
+ 248              	.LC12:
+ 249 0010 2049203A 		.ascii	" I : %d\000"
+ 249      20256400 
+ 250              		.align	2
+ 251              	.LC14:
+ 252 0018 2049203A 		.ascii	" I : %d\015\012\000"
+ 252      2025640D 
+ 252      0A00
+ 253 0022 0000     		.section	.text.calcMotorSpeed,"ax",%progbits
+ 254              		.align	2
+ 255              		.global	calcMotorSpeed
+ 256              		.code	16
+ 257              		.thumb_func
+ 259              	calcMotorSpeed:
+ 260              	.LFB2:
+  40:../Sources/motorServo.c **** 
+  41:../Sources/motorServo.c **** void calcMotorSpeed(int pos) {					//methode zur automatischen Berechnung einer Sinnvollen geschwin
+ 261              		.loc 1 41 0
+ 262              		.cfi_startproc
+ 263 0000 80B5     		push	{r7, lr}
+ 264              	.LCFI6:
+ 265              		.cfi_def_cfa_offset 8
+ 266              		.cfi_offset 7, -8
+ 267              		.cfi_offset 14, -4
+ 268 0002 82B0     		sub	sp, sp, #8
+ 269              	.LCFI7:
+ 270              		.cfi_def_cfa_offset 16
+ 271 0004 00AF     		add	r7, sp, #0
+ 272              	.LCFI8:
+ 273              		.cfi_def_cfa_register 7
+ 274 0006 7860     		str	r0, [r7, #4]
+  42:../Sources/motorServo.c **** 	
+  43:../Sources/motorServo.c **** 	if (drivingBack == 0) {						//falls gerade zurückgefahren wird
+ 275              		.loc 1 43 0
+ 276 0008 2E4B     		ldr	r3, .L21
+ 277 000a 1B68     		ldr	r3, [r3]
+ 278 000c 002B     		cmp	r3, #0
+ 279 000e 36D1     		bne	.L14
+  44:../Sources/motorServo.c **** 	
+  45:../Sources/motorServo.c **** 		if (pos <= 32) {						//je nachdem wo die schwarze Linie ist (variable: pos) wird die
+ 280              		.loc 1 45 0
+ 281 0010 7B68     		ldr	r3, [r7, #4]
+ 282 0012 202B     		cmp	r3, #32
+ 283 0014 04DC     		bgt	.L15
+  46:../Sources/motorServo.c **** 			setMotorSpeed(0.17);				//geschwindkeit des Motors geändert. Die Mitte ist bei 64
+ 284              		.loc 1 46 0
+ 285 0016 2C4B     		ldr	r3, .L21+4
+ 286 0018 181C     		add	r0, r3, #0
+ 287 001a FFF7FEFF 		bl	setMotorSpeed
+ 288 001e 2EE0     		b	.L14
+ 289              	.L15:
+  47:../Sources/motorServo.c **** 		} else if (pos <= 45) {
+ 290              		.loc 1 47 0
+ 291 0020 7B68     		ldr	r3, [r7, #4]
+ 292 0022 2D2B     		cmp	r3, #45
+ 293 0024 04DC     		bgt	.L16
+  48:../Sources/motorServo.c **** 			setMotorSpeed(0.24);
+ 294              		.loc 1 48 0
+ 295 0026 294B     		ldr	r3, .L21+8
+ 296 0028 181C     		add	r0, r3, #0
+ 297 002a FFF7FEFF 		bl	setMotorSpeed
+ 298 002e 26E0     		b	.L14
+ 299              	.L16:
+  49:../Sources/motorServo.c **** 		} else if (pos <= 55) {
+ 300              		.loc 1 49 0
+ 301 0030 7B68     		ldr	r3, [r7, #4]
+ 302 0032 372B     		cmp	r3, #55
+ 303 0034 04DC     		bgt	.L17
+  50:../Sources/motorServo.c **** 			setMotorSpeed(0.33);
+ 304              		.loc 1 50 0
+ 305 0036 264B     		ldr	r3, .L21+12
+ 306 0038 181C     		add	r0, r3, #0
+ 307 003a FFF7FEFF 		bl	setMotorSpeed
+ 308 003e 1EE0     		b	.L14
+ 309              	.L17:
+  51:../Sources/motorServo.c **** 		} else if (pos <= 75) {
+ 310              		.loc 1 51 0
+ 311 0040 7B68     		ldr	r3, [r7, #4]
+ 312 0042 4B2B     		cmp	r3, #75
+ 313 0044 04DC     		bgt	.L18
+  52:../Sources/motorServo.c **** 			setMotorSpeed(0.38);
+ 314              		.loc 1 52 0
+ 315 0046 234B     		ldr	r3, .L21+16
+ 316 0048 181C     		add	r0, r3, #0
+ 317 004a FFF7FEFF 		bl	setMotorSpeed
+ 318 004e 16E0     		b	.L14
+ 319              	.L18:
+  53:../Sources/motorServo.c **** 		} else if (pos <= 85) {
+ 320              		.loc 1 53 0
+ 321 0050 7B68     		ldr	r3, [r7, #4]
+ 322 0052 552B     		cmp	r3, #85
+ 323 0054 04DC     		bgt	.L19
+  54:../Sources/motorServo.c **** 			setMotorSpeed(0.33);
+ 324              		.loc 1 54 0
+ 325 0056 1E4B     		ldr	r3, .L21+12
+ 326 0058 181C     		add	r0, r3, #0
+ 327 005a FFF7FEFF 		bl	setMotorSpeed
+ 328 005e 0EE0     		b	.L14
+ 329              	.L19:
+  55:../Sources/motorServo.c **** 		} else if (pos <= 95) {
+ 330              		.loc 1 55 0
+ 331 0060 7B68     		ldr	r3, [r7, #4]
+ 332 0062 5F2B     		cmp	r3, #95
+ 333 0064 04DC     		bgt	.L20
+  56:../Sources/motorServo.c **** 			setMotorSpeed(0.24);
+ 334              		.loc 1 56 0
+ 335 0066 194B     		ldr	r3, .L21+8
+ 336 0068 181C     		add	r0, r3, #0
+ 337 006a FFF7FEFF 		bl	setMotorSpeed
+ 338 006e 06E0     		b	.L14
+ 339              	.L20:
+  57:../Sources/motorServo.c **** 		} else if (pos <= 128) {
+ 340              		.loc 1 57 0
+ 341 0070 7B68     		ldr	r3, [r7, #4]
+ 342 0072 802B     		cmp	r3, #128
+ 343 0074 03DC     		bgt	.L14
+  58:../Sources/motorServo.c **** 			setMotorSpeed(0.17);
+ 344              		.loc 1 58 0
+ 345 0076 144B     		ldr	r3, .L21+4
+ 346 0078 181C     		add	r0, r3, #0
+ 347 007a FFF7FEFF 		bl	setMotorSpeed
+ 348              	.L14:
+  59:../Sources/motorServo.c **** 		}
+  60:../Sources/motorServo.c **** 	
+  61:../Sources/motorServo.c **** 	}
+  62:../Sources/motorServo.c **** 
+  63:../Sources/motorServo.c **** 	TERMINAL_PRINTF(" CamData: %d", camData[8]);			//Schreibt beispieldaten in das Terminal um zu sehe
+ 349              		.loc 1 63 0
+ 350 007e 164B     		ldr	r3, .L21+20
+ 351 0080 1B6A     		ldr	r3, [r3, #32]
+ 352 0082 1649     		ldr	r1, .L21+24
+ 353 0084 164A     		ldr	r2, .L21+28
+ 354 0086 081C     		mov	r0, r1
+ 355 0088 111C     		mov	r1, r2
+ 356 008a 1A1C     		mov	r2, r3
+ 357 008c FFF7FEFF 		bl	Qprintf
+  64:../Sources/motorServo.c **** 	TERMINAL_PRINTF(" I : %d", camData[64]);				//%d wird genutzt um das integer in einen Text/String 
+ 358              		.loc 1 64 0
+ 359 0090 114A     		ldr	r2, .L21+20
+ 360 0092 8023     		mov	r3, #128
+ 361 0094 5B00     		lsl	r3, r3, #1
+ 362 0096 D358     		ldr	r3, [r2, r3]
+ 363 0098 1049     		ldr	r1, .L21+24
+ 364 009a 124A     		ldr	r2, .L21+32
+ 365 009c 081C     		mov	r0, r1
+ 366 009e 111C     		mov	r1, r2
+ 367 00a0 1A1C     		mov	r2, r3
+ 368 00a2 FFF7FEFF 		bl	Qprintf
+  65:../Sources/motorServo.c **** 	TERMINAL_PRINTF(" I : %d\r\n", camData[120]);			//"\r\n" beginnt danach eine neue Zeile
+ 369              		.loc 1 65 0
+ 370 00a6 0C4A     		ldr	r2, .L21+20
+ 371 00a8 F023     		mov	r3, #240
+ 372 00aa 5B00     		lsl	r3, r3, #1
+ 373 00ac D358     		ldr	r3, [r2, r3]
+ 374 00ae 0B49     		ldr	r1, .L21+24
+ 375 00b0 0D4A     		ldr	r2, .L21+36
+ 376 00b2 081C     		mov	r0, r1
+ 377 00b4 111C     		mov	r1, r2
+ 378 00b6 1A1C     		mov	r2, r3
+ 379 00b8 FFF7FEFF 		bl	Qprintf
+  66:../Sources/motorServo.c **** 	
+  67:../Sources/motorServo.c **** }
+ 380              		.loc 1 67 0
+ 381 00bc BD46     		mov	sp, r7
+ 382 00be 02B0     		add	sp, sp, #8
+ 383              		@ sp needed for prologue
+ 384 00c0 80BD     		pop	{r7, pc}
+ 385              	.L22:
+ 386 00c2 C046     		.align	2
+ 387              	.L21:
+ 388 00c4 00000000 		.word	drivingBack
+ 389 00c8 7B142E3E 		.word	1043207291
+ 390 00cc 8FC2753E 		.word	1047904911
+ 391 00d0 C3F5A83E 		.word	1051260355
+ 392 00d4 5C8FC23E 		.word	1052938076
+ 393 00d8 00000000 		.word	camData
+ 394 00dc 00000000 		.word	SDA_SERIAL_OUTGOING_QUEUE
+ 395 00e0 00000000 		.word	.LC10
+ 396 00e4 10000000 		.word	.LC12
+ 397 00e8 18000000 		.word	.LC14
+ 398              		.cfi_endproc
+ 399              	.LFE2:
+ 401              		.section	.text.driveBacktoLine,"ax",%progbits
+ 402              		.align	2
+ 403              		.global	driveBacktoLine
+ 404              		.code	16
+ 405              		.thumb_func
+ 407              	driveBacktoLine:
+ 408              	.LFB3:
+  68:../Sources/motorServo.c **** 
+  69:../Sources/motorServo.c **** void driveBacktoLine() {									//fährt eine bestimmte zeit zurück in der Hoffnung die linie wiede
+ 409              		.loc 1 69 0
+ 410              		.cfi_startproc
+ 411 0000 80B5     		push	{r7, lr}
+ 412              	.LCFI9:
+ 413              		.cfi_def_cfa_offset 8
+ 414              		.cfi_offset 7, -8
+ 415              		.cfi_offset 14, -4
+ 416 0002 00AF     		add	r7, sp, #0
+ 417              	.LCFI10:
+ 418              		.cfi_def_cfa_register 7
+  70:../Sources/motorServo.c **** 	
+  71:../Sources/motorServo.c **** 	TFC_Ticker[4] = 0;										//4. timer um bestimmte zeit lang zurückzufahren
+ 419              		.loc 1 71 0
+ 420 0004 054B     		ldr	r3, .L24
+ 421 0006 0022     		mov	r2, #0
+ 422 0008 1A61     		str	r2, [r3, #16]
+  72:../Sources/motorServo.c **** 	
+  73:../Sources/motorServo.c **** 	drivingBack = 1;
+ 423              		.loc 1 73 0
+ 424 000a 054B     		ldr	r3, .L24+4
+ 425 000c 0122     		mov	r2, #1
+ 426 000e 1A60     		str	r2, [r3]
+  74:../Sources/motorServo.c **** 	setMotorSpeed(-0.3);
+ 427              		.loc 1 74 0
+ 428 0010 044B     		ldr	r3, .L24+8
+ 429 0012 181C     		add	r0, r3, #0
+ 430 0014 FFF7FEFF 		bl	setMotorSpeed
+  75:../Sources/motorServo.c **** 	
+  76:../Sources/motorServo.c **** }
+ 431              		.loc 1 76 0
+ 432 0018 BD46     		mov	sp, r7
+ 433              		@ sp needed for prologue
+ 434 001a 80BD     		pop	{r7, pc}
+ 435              	.L25:
+ 436              		.align	2
+ 437              	.L24:
+ 438 001c 00000000 		.word	TFC_Ticker
+ 439 0020 00000000 		.word	drivingBack
+ 440 0024 9A9999BE 		.word	-1097229926
+ 441              		.cfi_endproc
+ 442              	.LFE3:
+ 444              		.text
+ 445              	.Letext0:
+ 446              		.file 2 "D:/Programme/CodeWarrior/CW MCU v10.6.4/MCU/ARM_GCC_Support/ewl/EWL_C/include/cstdint"
+ 447              		.file 3 "D:/NWT/Workplace/FRDM-TFC/Project_Headers/MKL25Z4.h"
+ 448              		.file 4 "D:/NWT/Workplace/FRDM-TFC/Project_Headers/TFC\\TFC_Queue.h"
+ 449              		.file 5 "D:/NWT/Workplace/FRDM-TFC/Project_Headers/TFC\\TFC_ARM_SysTick.h"
+ 450              		.file 6 "D:/NWT/Workplace/FRDM-TFC/Project_Headers/TFC\\TFC_UART.h"
+ 451              		.file 7 "D:/NWT/Workplace/FRDM-TFC/Project_Headers/config.h"
+ 452              		.file 8 "D:/NWT/Workplace/FRDM-TFC/Project_Headers/LineScanCam.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 motorServo.c
+                            *COM*:00000004 motor
+                            *COM*:00000004 servo
+                            *COM*:00000004 LEDconfig
+                            *COM*:00000004 target
+                            *COM*:00000004 auslmultiplier
+                            *COM*:00000004 speedMultiplier
+                            *COM*:00000004 minSpeed
+                            *COM*:00000004 linetimeout
+                            *COM*:00000004 ruckwartsZeit
+                            *COM*:00000200 camData
+                            *COM*:00000004 active
+                            *COM*:00000004 Sausl
+                            *COM*:00000004 linemissing
+                            *COM*:00000004 checkLineStep
+                            *COM*:00000004 Motorspeed
+                            *COM*:00000004 Servoausl
+C:\Users\Darkp\AppData\Local\Temp\ccgjFDnt.s:38     .bss.drivingBack:00000000 drivingBack
+C:\Users\Darkp\AppData\Local\Temp\ccgjFDnt.s:35     .bss.drivingBack:00000000 $d
+C:\Users\Darkp\AppData\Local\Temp\ccgjFDnt.s:46     .text.setServo:00000000 $t
+C:\Users\Darkp\AppData\Local\Temp\ccgjFDnt.s:51     .text.setServo:00000000 setServo
+C:\Users\Darkp\AppData\Local\Temp\ccgjFDnt.s:119    .text.setServo:00000068 $d
+C:\Users\Darkp\AppData\Local\Temp\ccgjFDnt.s:132    .text.setMotorSpeed:00000000 $t
+C:\Users\Darkp\AppData\Local\Temp\ccgjFDnt.s:137    .text.setMotorSpeed:00000000 setMotorSpeed
+C:\Users\Darkp\AppData\Local\Temp\ccgjFDnt.s:235    .text.setMotorSpeed:00000098 $d
+C:\Users\Darkp\AppData\Local\Temp\ccgjFDnt.s:244    .rodata:00000000 $d
+C:\Users\Darkp\AppData\Local\Temp\ccgjFDnt.s:254    .text.calcMotorSpeed:00000000 $t
+C:\Users\Darkp\AppData\Local\Temp\ccgjFDnt.s:259    .text.calcMotorSpeed:00000000 calcMotorSpeed
+C:\Users\Darkp\AppData\Local\Temp\ccgjFDnt.s:388    .text.calcMotorSpeed:000000c4 $d
+C:\Users\Darkp\AppData\Local\Temp\ccgjFDnt.s:402    .text.driveBacktoLine:00000000 $t
+C:\Users\Darkp\AppData\Local\Temp\ccgjFDnt.s:407    .text.driveBacktoLine:00000000 driveBacktoLine
+C:\Users\Darkp\AppData\Local\Temp\ccgjFDnt.s:438    .text.driveBacktoLine:0000001c $d
+                     .debug_frame:00000010 $d
+C:\Users\Darkp\AppData\Local\Temp\ccgjFDnt.s:131    .text.setServo:00000084 $t
+
+UNDEFINED SYMBOLS
+__aeabi_fmul
+__aeabi_f2d
+__aeabi_dmul
+__aeabi_dsub
+__aeabi_d2f
+TFC_SetServo
+__aeabi_fcmple
+__aeabi_i2f
+TFC_SetMotorPWM
+AllLEDsOFF
+LEDs_speedIndic
+Qprintf
+SDA_SERIAL_OUTGOING_QUEUE
+TFC_Ticker
